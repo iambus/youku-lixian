@@ -7,8 +7,18 @@ import re
 import os.path
 import shutil
 
+def youku_url(url):
+	if re.match(r'http://v.youku.com/v_show/id_(\w+).html', url):
+		return url
+	m = re.match(r'http://player.youku.com/player.php/sid/(\w+)/v.swf', url)
+	if m:
+		return 'http://v.youku.com/v_show/id_%s.html' % m.group(1)
+	if re.match(r'^\d+$', url):
+		return 'http://v.youku.com/v_show/id_%s.html' % url
+	raise Exception('Invalid youku URL: '+url)
+
 def parse_page(url):
-	#m = re.match(r'http://v.youku.com/v_show/id_(\S+).html', url)
+	url = youku_url(url)
 	page = urllib2.urlopen(url).read()
 	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
 	title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
@@ -63,7 +73,7 @@ def youku_download(url, output_dir='', stream_type=None):
 	for i, url in enumerate(urls):
 		filename = '%s%s%02d.flv' % (title, subtitle and ' - '+subtitle or '', i)
 		filepath = os.path.join(output_dir, filename)
-		print 'Downloading', url, 'to', filepath
+		print 'Downloading', filename, '...'
 		response = urllib2.urlopen(url)
 		with open(filepath, 'wb') as output:
 			shutil.copyfileobj(response, output)
