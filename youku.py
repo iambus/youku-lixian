@@ -23,6 +23,7 @@ def parse_page(url):
 	page = urllib2.urlopen(url).read()
 	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
 	title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
+	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '')
 	subtitle = re.search(r'<span class="subtitle" id="subtitle">([^<>]*)</span>', page)
 	if subtitle:
 		subtitle = subtitle.group(1).decode('utf-8')
