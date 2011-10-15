@@ -68,6 +68,11 @@ def find_video(info, stream_type=None):
 		urls.append(url)
 	return urls
 
+def url_save(url, filepath):
+	response = urllib2.urlopen(url)
+	with open(filepath, 'wb') as output:
+		shutil.copyfileobj(response, output)
+
 def youku_download(url, output_dir='', stream_type=None):
 	id2, title, subtitle = parse_page(url)
 	if subtitle:
@@ -79,19 +84,24 @@ def youku_download(url, output_dir='', stream_type=None):
 		title = title.encode(encoding)
 	info = get_info(id2)
 	urls = find_video(info, stream_type)
-	flvs = []
-	for i, url in enumerate(urls):
-		filename = '%s[%02d].flv' % (title, i)
+	assert urls
+	if len(urls) == 1:
+		filename = '%s.flv' % title
 		filepath = os.path.join(output_dir, filename)
-		flvs.append(filepath)
 		print 'Downloading', filename, '...'
-		response = urllib2.urlopen(url)
-		with open(filepath, 'wb') as output:
-			shutil.copyfileobj(response, output)
-	from flv_join import concat_flvs
-	concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
-	for flv in flvs:
-		os.remove(flv)
+		url_save(urls[0], filepath)
+	else:
+		flvs = []
+		for i, url in enumerate(urls):
+			filename = '%s[%02d].flv' % (title, i)
+			filepath = os.path.join(output_dir, filename)
+			flvs.append(filepath)
+			print 'Downloading', filename, '...'
+			url_save(url, filepath)
+		from flv_join import concat_flvs
+		concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
+		for flv in flvs:
+			os.remove(flv)
 
 if __name__ == '__main__':
 	for url in sys.argv[1:]:
