@@ -47,14 +47,13 @@ def find_video(info, stream_type=None):
 			raise NotImplementedError()
 
 	seed = info['data'][0]['seed']
-	source = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\\:._-1234567890";
+	source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\\:._-1234567890")
 	mixed = ''
-	for c in source:
-		seed = (seed * 211 + 30031) % 65536;
-		index = int(seed * len(source) / 65536)
-		c = source[index]
+	while source:
+		seed = (seed * 211 + 30031) & 0xFFFF
+		index = seed * len(source) >> 16
+		c = source.pop(index)
 		mixed += c
-		source = source.replace(c, "", 1)
 
 	ids = info['data'][0]['streamfileids'][stream_type].split('*')[:-1]
 	vid = ''.join(mixed[int(i)] for i in ids)
