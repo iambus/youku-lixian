@@ -7,6 +7,7 @@ from time import time
 import re
 import os.path
 import shutil
+import sys
 
 def youku_url(url):
 	if re.match(r'http://v.youku.com/v_show/id_(\w+).html', url):
@@ -71,6 +72,11 @@ def youku_download(url, output_dir='', stream_type=None):
 	id2, title, subtitle = parse_page(url)
 	if subtitle:
 		title += '-' + subtitle
+	if type(title) == unicode:
+		encoding = sys.getfilesystemencoding()
+		if encoding.lower() == 'ascii':
+			encoding = 'utf-8'
+		title = title.encode(encoding)
 	info = get_info(id2)
 	urls = find_video(info, stream_type)
 	flvs = []
@@ -88,7 +94,6 @@ def youku_download(url, output_dir='', stream_type=None):
 		os.remove(flv)
 
 if __name__ == '__main__':
-	import sys
 	for url in sys.argv[1:]:
 		youku_download(url)
 
