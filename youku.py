@@ -85,6 +85,8 @@ def youku_download(url, output_dir='', stream_type=None):
 			shutil.copyfileobj(response, output)
 	from flv_join import concat_flvs
 	concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
+	for flv in flvs:
+		os.remove(flv)
 
 if __name__ == '__main__':
 	import sys
