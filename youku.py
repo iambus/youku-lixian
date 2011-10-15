@@ -111,7 +111,7 @@ def youku_download(url, output_dir='', stream_type=None):
 			for flv in flvs:
 				os.remove(flv)
 		else:
-			print "can't join %s files" % file_type
+			print "Can't join %s files" % file_type
 
 if __name__ == '__main__':
 	for url in sys.argv[1:]:
