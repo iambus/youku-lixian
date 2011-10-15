@@ -328,7 +328,7 @@ def concat_flvs(flvs, output=None):
 	return output
 
 def usage():
-	print 'python flv_join.py flv... --output target.flv'
+	print 'python flv_join.py --output target.flv flv...'
 
 if __name__ == '__main__':
 	import sys, getopt
