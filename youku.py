@@ -46,6 +46,8 @@ def find_video(info, stream_type=None):
 				break
 		else:
 			raise NotImplementedError()
+	assert stream_type in ('hd2', 'mp4', 'flv')
+	file_type = {'hd2':'flv', 'mp4':'mp4', 'flv':'flv'}[stream_type]
 
 	seed = info['data'][0]['seed']
 	source = list("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ/\\:._-1234567890")
@@ -64,7 +66,7 @@ def find_video(info, stream_type=None):
 	urls = []
 	for s in segs[stream_type]:
 		no = '%02d' % int(s['no'])
-		url = 'http://f.youku.com/player/getFlvPath/sid/%s_%s/st/%s/fileid/%s%s%s?K=%s&ts=%s' % (sid, no, 'flv', vid[:8], no, vid[10:], s['k'], s['seconds'])
+		url = 'http://f.youku.com/player/getFlvPath/sid/%s_%s/st/%s/fileid/%s%s%s?K=%s&ts=%s' % (sid, no, file_type, vid[:8], no, vid[10:], s['k'], s['seconds'])
 		urls.append(url)
 	return urls
 
@@ -72,6 +74,9 @@ def url_save(url, filepath):
 	response = urllib2.urlopen(url)
 	with open(filepath, 'wb') as output:
 		shutil.copyfileobj(response, output)
+
+def file_type_of_url(url):
+	return str(re.search(r'/st/([^/]+)/', url).group(1))
 
 def youku_download(url, output_dir='', stream_type=None):
 	id2, title, subtitle = parse_page(url)
@@ -86,22 +91,27 @@ def youku_download(url, output_dir='', stream_type=None):
 	urls = find_video(info, stream_type)
 	assert urls
 	if len(urls) == 1:
-		filename = '%s.flv' % title
+		url = urls[0]
+		filename = '%s.%s' % (title, file_type_of_url(url))
 		filepath = os.path.join(output_dir, filename)
 		print 'Downloading', filename, '...'
-		url_save(urls[0], filepath)
+		url_save(url, filepath)
 	else:
 		flvs = []
 		for i, url in enumerate(urls):
-			filename = '%s[%02d].flv' % (title, i)
+			filename = '%s[%02d].%s' % (title, i, file_type_of_url(url))
 			filepath = os.path.join(output_dir, filename)
 			flvs.append(filepath)
 			print 'Downloading', filename, '...'
 			url_save(url, filepath)
-		from flv_join import concat_flvs
-		concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
-		for flv in flvs:
-			os.remove(flv)
+		file_type = file_type_of_url(urls[0])
+		if file_type == 'flv':
+			from flv_join import concat_flvs
+			concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
+			for flv in flvs:
+				os.remove(flv)
+		else:
+			print "can't join %s files" % file_type
 
 if __name__ == '__main__':
 	for url in sys.argv[1:]:
