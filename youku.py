@@ -71,13 +71,17 @@ def youku_download(url, output_dir='', stream_type=None):
 	id2, title, subtitle = parse_page(url)
 	info = get_info(id2)
 	urls = find_video(info, stream_type)
+	flvs = []
 	for i, url in enumerate(urls):
-		filename = '%s%s%02d.flv' % (title, subtitle and ' - '+subtitle or '', i)
+		filename = '%s%s[%02d].flv' % (title, subtitle and ' - '+subtitle or '', i)
 		filepath = os.path.join(output_dir, filename)
+		flvs.append(filepath)
 		print 'Downloading', filename, '...'
 		response = urllib2.urlopen(url)
 		with open(filepath, 'wb') as output:
 			shutil.copyfileobj(response, output)
+	from flv_join import concat_flvs
+	concat_flvs(flvs, output_dir)
 
 if __name__ == '__main__':
 	import sys
