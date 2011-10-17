@@ -71,6 +71,38 @@ class Atom:
 		assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
 		return self.size
 
+class VariableAtom(Atom):
+	def __init__(self, type, size, body, variables):
+		assert isinstance(body, str)
+		Atom.__init__(self, type, size, body)
+		self.variables = variables
+	def write(self, stream):
+		self.write1(stream)
+		i = 0
+		n = 0
+		for name, offset, value in self.variables:
+			stream.write(self.body[i:offset])
+			write_uint(stream, value)
+			n += offset - i + 4
+			i = offset + 4
+		stream.write(self.body[i:])
+		n += len(self.body) - i
+		assert n == len(self.body)
+	def get(self, k):
+		for v in self.variables:
+			if v[0] == k:
+				return v[2]
+		else:
+			raise Exception('field not found: '+k)
+	def set(self, k, v):
+		for i in range(len(self.variables)):
+			v = self.variables[i]
+			if v[0] == k:
+				self.variables[i] = (k, v[1], v)
+				break
+		else:
+			raise Exception('field not found: '+k)
+
 def read_raw(stream, size, left, type):
 	assert size == left + 8
 	body = stream.read(left)
@@ -121,7 +153,7 @@ def read_mvhd(stream, size, left, type):
 	nextTrackID = read_uint(stream)
 	left -= 80
 	assert left == 0
-	return Atom('mvhd', size, body)
+	return VariableAtom('mvhd', size, body, [('duration', 16, duration)])
 
 def read_tkhd(stream, size, left, type):
 	body, stream = read_body_stream(stream, left)
@@ -156,7 +188,7 @@ def read_tkhd(stream, size, left, type):
 	height = qt_track_height >> 16
 	left -= 60
 	assert left == 0
-	return Atom('tkhd', size, body)
+	return VariableAtom('tkhd', size, body, [('duration', 20, duration)])
 
 def read_mdhd(stream, size, left, type):
 	body, stream = read_body_stream(stream, left)
@@ -175,7 +207,7 @@ def read_mdhd(stream, size, left, type):
 	left -= 4
 
 	assert left == 0
-	return Atom('mdhd', size, body)
+	return VariableAtom('mdhd', size, body, [('duration', 16, duration)])
 
 def read_hdlr(stream, size, left, type):
 	body, stream = read_body_stream(stream, left)
@@ -590,5 +622,6 @@ def write_atom(stream, atom):
 
 def merge_moov(moovs):
 	raise NotImplementedError()
+
 
 
