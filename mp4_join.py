@@ -479,6 +479,36 @@ def read_stco(stream, size, left, type):
 			return self.size
 	return stco_atom('stco', size, (value, offsets))
 
+def read_ctts(stream, size, left, type):
+	value = read_full_atom(stream)
+	left -= 4
+
+	entry_count = read_uint(stream)
+	left -= 4
+
+	samples = []
+	for i in range(entry_count):
+		sample_count = read_uint(stream)
+		sample_offset = read_uint(stream)
+		samples.append((sample_count, sample_offset))
+		left -= 8
+	
+	assert left == 0
+	class ctts_atom(Atom):
+		def __init__(self, type, size, body):
+			Atom.__init__(self, type, size, body)
+		def write(self, stream):
+			self.write1(stream)
+			write_uint(stream, self.body[0])
+			write_uint(stream, len(self.body[1]))
+			for sample_count, sample_offset in self.body[1]:
+				write_uint(stream, sample_count)
+				write_uint(stream, sample_offset)
+		def calsize(self):
+			self.size = 8 + 4 + 4 + len(self.body[1]) * 8
+			return self.size
+	return ctts_atom('ctts', size, (value, samples))
+
 def read_smhd(stream, size, left, type):
 	body, stream = read_body_stream(stream, left)
 	value = read_full_atom(stream)
@@ -569,6 +599,7 @@ atom_readers = {
 	'stsc': read_stsc, # merge # sample numbers
 	'stsz': read_stsz, # merge # samples
 	'stco': read_stco, # merge # chunk offsets
+	'ctts': read_ctts, # merge
 	'smhd': read_smhd, # nothing
 	'mp4a': read_mp4a, # nothing
 	'esds': read_esds, # noting
@@ -583,7 +614,6 @@ atom_readers = {
 	'stbl': read_composite_atom,
 	'iods': read_raw,
 	'dref': read_raw,
-	'ctts': read_raw,
 	'free': read_raw,
 	'edts': read_raw,
 
@@ -674,6 +704,7 @@ def merge_stss(samples):
 	for s in steps:
 		i += s
 		samples.append(i)
+	samples.append(samples[-1]*2-samples[-2])
 	# TODO: should I add a final sample?
 	return samples
 
@@ -696,7 +727,7 @@ def merge_stco(offsets_list, mdats):
 	offset = 0
 	results = []
 	for offsets, mdat in zip(offsets_list, mdats):
-		results.extend(offset + x - int(mdat.body[1]) for x in offsets)
+		results.extend(offset + x -mdat.body[1] for x in offsets)
 		offset += mdat.size - 8
 	return results
 
@@ -747,6 +778,8 @@ def merge_moov(moovs, mdats):
 	stsz0 = merge_stsz((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsz').body[3] for x in moovs))
 	stsz1 = merge_stsz((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsz').body[3] for x in moovs))
 
+	ctts = sum((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('ctts').body[1] for x in moovs), [])
+
 	moov = moovs[0]
 
 	moov.get('mvhd').set('duration', mvhd_duration)
@@ -777,6 +810,9 @@ def merge_moov(moovs, mdats):
 	stsz_atom.body = stsz_atom.body[0], stsz_atom.body[1], len(stsz0), stsz0
 	stsz_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsz')
 	stsz_atom.body = stsz_atom.body[0], stsz_atom.body[1], len(stsz1), stsz1
+
+	ctts_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('ctts')
+	ctts_atom.body = ctts_atom.body[0], ctts
 
 	old_moov_size = moov.size
 	new_moov_size = moov.calsize()
