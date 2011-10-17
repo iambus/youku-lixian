@@ -708,19 +708,19 @@ def merge_stss(samples):
 	# TODO: should I add a final sample?
 	return samples
 
-def merge_stsc(chunks_list):
+def merge_stsc(chunks_list, total_chunk_number_list):
 	results = []
 	chunk_index = 1
-	for chunks in chunks_list:
-		for i in range(len(chunks) - 1):
-			chunk_number = chunks[i+1][0] - chunks[i][0]
+	for chunks, total in zip(chunks_list, total_chunk_number_list):
+		for i in range(len(chunks)):
+			if i < len(chunks) - 1:
+				chunk_number = chunks[i+1][0] - chunks[i][0]
+			else:
+				chunk_number = total + 1 - chunks[i][0]
 			sample_number = chunks[i][1]
 			description = chunks[i][2]
 			results.append((chunk_index, sample_number, description))
 			chunk_index += chunk_number
-		results.append((chunk_index, chunks[-1][1], description))
-		chunk_index += 1
-	#results.append((chunk_index, 0, description))
 	return results
 
 def merge_stco(offsets_list, mdats):
@@ -769,8 +769,8 @@ def merge_moov(moovs, mdats):
 
 	stss = merge_stss(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stss').body[1] for x in moovs)
 
-	stsc0 = merge_stsc(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs)
-	stsc1 = merge_stsc(x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs)
+	stsc0 = merge_stsc((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs), (len(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco').body[1]) for x in moovs))
+	stsc1 = merge_stsc((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs), (len(x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco').body[1]) for x in moovs))
 
 	stco0 = merge_stco((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco').body[1] for x in moovs), mdats)
 	stco1 = merge_stco((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco').body[1] for x in moovs), mdats)
