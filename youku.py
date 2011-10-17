@@ -72,6 +72,12 @@ def find_video(info, stream_type=None):
 
 def url_save(url, filepath):
 	response = urllib2.urlopen(url)
+	if os.path.exists(filepath):
+		if int(response.headers['content-length']) == os.path.getsize(filepath):
+			print 'Skip %s: file already exists' % os.path.basename(filepath)
+			return
+		else:
+			print 'Overwriting', os.path.basename(filepath), '...'
 	with open(filepath, 'wb') as output:
 		shutil.copyfileobj(response, output)
 
