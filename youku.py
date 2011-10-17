@@ -100,7 +100,7 @@ def youku_download(url, output_dir='', stream_type=None):
 		url = urls[0]
 		filename = '%s.%s' % (title, file_type_of_url(url))
 		filepath = os.path.join(output_dir, filename)
-		print 'Downloading', filename, '...'
+		print 'Downloading %s [1/1] ...' % filename
 		url_save(url, filepath)
 	else:
 		flvs = []
@@ -108,7 +108,7 @@ def youku_download(url, output_dir='', stream_type=None):
 			filename = '%s[%02d].%s' % (title, i, file_type_of_url(url))
 			filepath = os.path.join(output_dir, filename)
 			flvs.append(filepath)
-			print 'Downloading', filename, '...'
+			print 'Downloading %s [%s/%s]...' % (filename, i+1, len(urls))
 			url_save(url, filepath)
 		file_type = file_type_of_url(urls[0])
 		if file_type == 'flv':
