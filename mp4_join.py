@@ -838,7 +838,7 @@ def concat_mp4s(mp4s, output=None):
 def usage():
 	print 'python mp4_join.py --output target.mp4 mp4...'
 
-if __name__ == '__main__':
+def main():
 	import sys, getopt
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "ho:", ["help", "output="])
@@ -861,4 +861,7 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	concat_mp4s(args, output)
+
+if __name__ == '__main__':
+	main()
 

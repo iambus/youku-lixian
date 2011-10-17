@@ -330,7 +330,7 @@ def concat_flvs(flvs, output=None):
 def usage():
 	print 'python flv_join.py --output target.flv flv...'
 
-if __name__ == '__main__':
+def main():
 	import sys, getopt
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "ho:", ["help", "output="])
@@ -353,4 +353,7 @@ if __name__ == '__main__':
 		sys.exit(1)
 
 	concat_flvs(args, output)
+
+if __name__ == '__main__':
+	main()
 
