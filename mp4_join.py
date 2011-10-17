@@ -699,19 +699,13 @@ def merge_stts(samples_list):
 	assert len(set(durations)) == 1, 'not all durations equal'
 	return [(sum(counts), durations[0])]
 
-def merge_stss(samples):
-	# TODO: inefficient
-	steps = []
-	for s in samples:
-		steps.extend(map(lambda x, y: y - x, s[:-1], s[1:]))
-	samples = [1]
-	i = 1
-	for s in steps:
-		i += s
-		samples.append(i)
-	samples.append(samples[-1]*2-samples[-2])
-	# TODO: should I add a final sample?
-	return samples
+def merge_stss(samples, sample_number_list):
+	results = []
+	start = 0
+	for samples, sample_number_list in zip(samples, sample_number_list):
+		results.extend(map(lambda x: start + x, samples))
+		start += sample_number_list
+	return results
 
 def merge_stsc(chunks_list, total_chunk_number_list):
 	results = []
@@ -732,7 +726,7 @@ def merge_stco(offsets_list, mdats):
 	offset = 0
 	results = []
 	for offsets, mdat in zip(offsets_list, mdats):
-		results.extend(offset + x -mdat.body[1] for x in offsets)
+		results.extend(offset + x - mdat.body[1] for x in offsets)
 		offset += mdat.size - 8
 	return results
 
@@ -775,7 +769,7 @@ def merge_moov(moovs, mdats):
 	stts0 = merge_stts(x.get('mdia', 'minf', 'stbl', 'stts').body[1] for x in trak0s)
 	stts1 = merge_stts(x.get('mdia', 'minf', 'stbl', 'stts').body[1] for x in trak1s)
 
-	stss = merge_stss(x.get('mdia', 'minf', 'stbl', 'stss').body[1] for x in trak0s)
+	stss = merge_stss((x.get('mdia', 'minf', 'stbl', 'stss').body[1] for x in trak0s), (len(x.get('mdia', 'minf', 'stbl', 'stsz').body[3]) for x in trak0s))
 
 	stsc0 = merge_stsc((x.get('mdia', 'minf', 'stbl', 'stsc').body[1] for x in trak0s), (len(x.get('mdia', 'minf', 'stbl', 'stco').body[1]) for x in trak0s))
 	stsc1 = merge_stsc((x.get('mdia', 'minf', 'stbl', 'stsc').body[1] for x in trak1s), (len(x.get('mdia', 'minf', 'stbl', 'stco').body[1]) for x in trak1s))
