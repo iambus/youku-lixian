@@ -1,6 +1,10 @@
 
 # reference: c041828_ISO_IEC_14496-12_2005(E).pdf
 
+##################################################
+# reader and writer
+##################################################
+
 import struct
 from cStringIO import StringIO
 
@@ -44,32 +48,41 @@ class Atom:
 		self.size = size
 		self.body = body
 	def __str__(self):
-		return '<Atom(%s):%s>' % (self.type, repr(self.body))
+		#return '<Atom(%s):%s>' % (self.type, repr(self.body))
+		return '<Atom(%s):%s>' % (self.type, '')
 	def __repr__(self):
 		return str(self)
 	def write1(self, stream):
-		#print self.type, stream.tell()
 		write_uint(stream, self.size)
 		stream.write(self.type)
 	def write(self, stream):
-		assert type(self.body) in (str, list), '%s: %s' % (self.type, type(self.body))
-		if type(self.body) == str:
-			assert self.size == 8 + len(self.body)
-			self.write1(stream)
-			stream.write(self.body)
-		else:
-			self.write1(stream)
-			for atom in self.body:
-				atom.write(stream)
+		assert type(self.body) == str, '%s: %s' % (self.type, type(self.body))
+		assert self.size == 8 + len(self.body)
+		self.write1(stream)
+		stream.write(self.body)
 	def calsize(self):
-		oldsize = self.size # TODO: remove
-		assert type(self.body) in (str, list), '%s: %s' % (self.type, type(self.body))
-		if type(self.body) == str:
-			pass
-		else:
-			self.size = 8 + sum([atom.calsize() for atom in self.body])
-		assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
 		return self.size
+
+class CompositeAtom(Atom):
+	def __init__(self, type, size, body):
+		assert isinstance(body, list)
+		Atom.__init__(self, type, size, body)
+	def write(self, stream):
+		assert type(self.body) == list
+		self.write1(stream)
+		for atom in self.body:
+			atom.write(stream)
+	def calsize(self):
+		self.size = 8 + sum([atom.calsize() for atom in self.body])
+		return self.size
+	def get(self, k):
+		for a in self.body:
+			if a.type == k:
+				return a
+		else:
+			raise Exception('atom not found: '+k)
+	def get_all(self, k):
+		return filter(lambda x: x.type == k, self.body)
 
 class VariableAtom(Atom):
 	def __init__(self, type, size, body, variables):
@@ -96,9 +109,9 @@ class VariableAtom(Atom):
 			raise Exception('field not found: '+k)
 	def set(self, k, v):
 		for i in range(len(self.variables)):
-			v = self.variables[i]
-			if v[0] == k:
-				self.variables[i] = (k, v[1], v)
+			variable = self.variables[i]
+			if variable[0] == k:
+				self.variables[i] = (k, variable[1], v)
 				break
 		else:
 			raise Exception('field not found: '+k)
@@ -305,6 +318,7 @@ def read_stts(stream, size, left, type):
 	left -= 4
 
 	entry_count = read_uint(stream)
+	assert entry_count == 1
 	left -= 4
 
 	samples = []
@@ -358,9 +372,7 @@ def read_stss(stream, size, left, type):
 			for sample in self.body[1]:
 				write_uint(stream, sample)
 		def calsize(self):
-			oldsize = self.size # TODO: remove
 			self.size = 8 + 4 + 4 + len(self.body[1]) * 4
-			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
 			return self.size
 	return stss_atom('stss', size, (value, samples))
 
@@ -399,9 +411,7 @@ def read_stsc(stream, size, left, type):
 				write_uint(stream, samples_per_chunk)
 				write_uint(stream, sample_description_index)
 		def calsize(self):
-			oldsize = self.size # TODO: remove
 			self.size = 8 + 4 + 4 + len(self.body[1]) * 12
-			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
 			return self.size
 	return stsc_atom('stsc', size, (value, chunks))
 
@@ -436,9 +446,7 @@ def read_stsz(stream, size, left, type):
 			for entry_size in self.body[3]:
 				write_uint(stream, entry_size)
 		def calsize(self):
-			oldsize = self.size # TODO: remove
 			self.size = 8 + 4 + 8 + len(self.body[3]) * 4
-			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
 			return self.size
 	return stsz_atom('stsz', size, (value, sample_size, sample_count, sizes))
 
@@ -467,9 +475,7 @@ def read_stco(stream, size, left, type):
 			for chunk_offset in self.body[1]:
 				write_uint(stream, chunk_offset)
 		def calsize(self):
-			oldsize = self.size # TODO: remove
 			self.size = 8 + 4 + 4 + len(self.body[1]) * 4
-			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
 			return self.size
 	return stco_atom('stco', size, (value, offsets))
 
@@ -526,7 +532,7 @@ def read_composite_atom(stream, size, left, type):
 		children.append(atom)
 		left -= atom.size
 	assert left == 0, left
-	return Atom(type, size, children)
+	return CompositeAtom(type, size, children)
 
 def read_mdat(stream, size, left, type):
 	source_start = stream.tell()
@@ -538,10 +544,12 @@ def read_mdat(stream, size, left, type):
 		def __init__(self, type, size, body):
 			Atom.__init__(self, type, size, body)
 		def write(self, stream):
+			self.write1(stream)
+			self.write2(stream)
+		def write2(self, stream):
 			source, source_start, source_size = self.body
 			original = source.tell()
 			source.seek(source_start)
-			self.write1(stream)
 			copy_stream(source, stream, source_size)
 		def calsize(self):
 			return self.size
@@ -558,9 +566,9 @@ atom_readers = {
 	'avcC': read_avcC, # nothing
 	'stts': read_stts, # sample_count, sample_duration
 	'stss': read_stss, # join indexes
-	'stsc': read_stsc, # merge # records
+	'stsc': read_stsc, # merge # sample numbers
 	'stsz': read_stsz, # merge # samples
-	'stco': read_stco, # merge # chunks
+	'stco': read_stco, # merge # chunk offsets
 	'smhd': read_smhd, # nothing
 	'mp4a': read_mp4a, # nothing
 	'esds': read_esds, # noting
@@ -600,11 +608,15 @@ atom_readers = {
 
 
 def read_atom(stream):
+	header = stream.read(8)
+	if not header:
+		return
+	assert len(header) == 8
 	n = 0
-	size = read_uint(stream)
+	size = struct.unpack('>I', header[:4])[0]
 	assert size > 0
 	n += 4
-	type = stream.read(4)
+	type = header[4:8]
 	n += 4
 	assert type != 'uuid'
 	if size == 1:
@@ -619,9 +631,234 @@ def read_atom(stream):
 def write_atom(stream, atom):
 	atom.write(stream)
 
+def parse_atoms(stream):
+	atoms = []
+	while True:
+		atom = read_atom(stream)
+		if atom:
+			atoms.append(atom)
+		else:
+			break
+	return atoms
 
-def merge_moov(moovs):
-	raise NotImplementedError()
+def read_mp4(stream):
+	atoms = parse_atoms(stream)
+	moov = filter(lambda x: x.type == 'moov', atoms)
+	mdat = filter(lambda x: x.type == 'mdat', atoms)
+	assert len(moov) == 1
+	assert len(mdat) == 1
+	moov = moov[0]
+	mdat = mdat[0]
+	return atoms, moov, mdat
 
+##################################################
+# merge
+##################################################
 
+def merge_stts(samples_list):
+	sample_list = []
+	for samples in samples_list:
+		assert len(samples) == 1
+		sample_list.append(samples[0])
+	counts, durations = zip(*sample_list)
+	assert len(set(durations)) == 1, 'not all durations equal'
+	return [(sum(counts), durations[0])]
+
+def merge_stss(samples):
+	# TODO: inefficient
+	steps = []
+	for s in samples:
+		steps.extend(map(lambda x, y: y - x, s[:-1], s[1:]))
+	samples = [1]
+	i = 1
+	for s in steps:
+		i += s
+		samples.append(i)
+	# TODO: should I add a final sample?
+	return samples
+
+def merge_stsc(chunks_list):
+	results = []
+	chunk_index = 1
+	for chunks in chunks_list:
+		for i in range(len(chunks) - 1):
+			chunk_number = chunks[i+1][0] - chunks[i][0]
+			sample_number = chunks[i][1]
+			description = chunks[i][2]
+			results.append((chunk_index, sample_number, description))
+			chunk_index += chunk_number
+		results.append((chunk_index, chunks[-1][1], description))
+		chunk_index += 1
+	#results.append((chunk_index, 0, description))
+	return results
+
+def merge_stco(offsets_list, mdats):
+	offset = 0
+	results = []
+	for offsets, mdat in zip(offsets_list, mdats):
+		results.extend(offset + x - int(mdat.body[1]) for x in offsets)
+		offset += mdat.size - 8
+	return results
+
+def merge_stsz(sizes_list):
+	return sum(sizes_list, [])
+
+def merge_mdats(mdats):
+	total_size = sum(x.size - 8 for x in mdats) + 8
+	class multi_mdat_atom(Atom):
+		def __init__(self, type, size, body):
+			Atom.__init__(self, type, size, body)
+		def write(self, stream):
+			self.write1(stream)
+			self.write2(stream)
+		def write2(self, stream):
+			for mdat in self.body:
+				mdat.write2(stream)
+		def calsize(self):
+			return self.size
+	return multi_mdat_atom('mdat', total_size, mdats)
+
+def merge_moov(moovs, mdats):
+	mvhd_duration = 0
+	for x in moovs:
+		mvhd_duration += x.get('mvhd').get('duration')
+	tkhd_durations = [0, 0]
+	mdhd_durations = [0, 0]
+	for x in moovs:
+		traks = x.get_all('trak')
+		assert len(traks) == 2
+		tkhd_durations[0] += traks[0].get('tkhd').get('duration')
+		tkhd_durations[1] += traks[1].get('tkhd').get('duration')
+		mdhd_durations[0] += traks[0].get('mdia').get('mdhd').get('duration')
+		mdhd_durations[1] += traks[1].get('mdia').get('mdhd').get('duration')
+	#mvhd_duration = min(mvhd_duration, tkhd_durations)
+
+	stts0 = merge_stts(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stts').body[1] for x in moovs)
+	stts1 = merge_stts(x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stts').body[1] for x in moovs)
+
+	stss = merge_stss(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stss').body[1] for x in moovs)
+
+	stsc0 = merge_stsc(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs)
+	stsc1 = merge_stsc(x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs)
+
+	stco0 = merge_stco((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco').body[1] for x in moovs), mdats)
+	stco1 = merge_stco((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco').body[1] for x in moovs), mdats)
+
+	stsz0 = merge_stsz((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsz').body[3] for x in moovs))
+	stsz1 = merge_stsz((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsz').body[3] for x in moovs))
+
+	moov = moovs[0]
+
+	moov.get('mvhd').set('duration', mvhd_duration)
+	moov.get_all('trak')[0].get('tkhd').set('duration', tkhd_durations[0])
+	moov.get_all('trak')[1].get('tkhd').set('duration', tkhd_durations[1])
+	moov.get_all('trak')[0].get('mdia').get('mdhd').set('duration', mdhd_durations[0])
+	moov.get_all('trak')[1].get('mdia').get('mdhd').set('duration', mdhd_durations[1])
+
+	stts_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stts')
+	stts_atom.body = stts_atom.body[0], stts0
+	stts_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stts')
+	stts_atom.body = stts_atom.body[0], stts1
+
+	stss_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stss')
+	stss_atom.body = stss_atom.body[0], stss
+
+	stsc_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsc')
+	stsc_atom.body = stsc_atom.body[0], stsc0
+	stsc_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsc')
+	stsc_atom.body = stsc_atom.body[0], stsc1
+
+	stco_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom.body = stss_atom.body[0], stco0
+	stco_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom.body = stss_atom.body[0], stco1
+
+	stsz_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsz')
+	stsz_atom.body = stsz_atom.body[0], stsz_atom.body[1], len(stsz0), stsz0
+	stsz_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsz')
+	stsz_atom.body = stsz_atom.body[0], stsz_atom.body[1], len(stsz1), stsz1
+
+	old_moov_size = moov.size
+	new_moov_size = moov.calsize()
+	new_mdat_start = mdats[0].body[1] + new_moov_size - old_moov_size
+	stco0 = map(lambda x: x + new_mdat_start, stco0)
+	stco1 = map(lambda x: x + new_mdat_start, stco1)
+	stco_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom.body = stss_atom.body[0], stco0
+	stco_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom.body = stss_atom.body[0], stco1
+
+	return moov
+
+def merge_mp4s(files, output):
+	assert files
+	ins = [open(mp4, 'rb') for mp4 in files]
+	mp4s = map(read_mp4, ins)
+	moovs = map(lambda x: x[1], mp4s)
+	mdats = map(lambda x: x[2], mp4s)
+	moov = merge_moov(moovs, mdats)
+	mdat = merge_mdats(mdats)
+	with open(output, 'wb') as output:
+		for x in mp4s[0][0]:
+			if x.type == 'moov':
+				moov.write(output)
+			elif x.type == 'mdat':
+				mdat.write(output)
+			else:
+				x.write(output)
+
+##################################################
+# main
+##################################################
+
+# TODO: FIXME: duplicate of flv_join
+
+def guess_output(inputs):
+	import os.path
+	inputs = map(os.path.basename, inputs)
+	n = min(map(len, inputs))
+	for i in reversed(range(1, n)):
+		if len(set(s[:i] for s in inputs)) == 1:
+			return inputs[0][:i] + '.mp4'
+	return 'output.mp4'
+
+def concat_mp4s(mp4s, output=None):
+	assert mp4s, 'no mp4 file found'
+	import os.path
+	if not output:
+		output = guess_output(mp4s)
+	elif os.path.isdir(output):
+		output = os.path.join(output, guess_output(mp4s))
+
+	print 'Joining %s into %s' % (', '.join(mp4s), output)
+	merge_mp4s(mp4s, output)
+
+	return output
+
+def usage():
+	print 'python mp4_join.py --output target.mp4 mp4...'
+
+if __name__ == '__main__':
+	import sys, getopt
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "ho:", ["help", "output="])
+	except getopt.GetoptError, err:
+		usage()
+		sys.exit(1)
+	output = None
+	verbose = False
+	for o, a in opts:
+		if o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		elif o in ("-o", "--output"):
+			output = a
+		else:
+			usage()
+			sys.exit(1)
+	if not args:
+		usage()
+		sys.exit(1)
+
+	concat_mp4s(args, output)
 
