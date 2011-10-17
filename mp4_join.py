@@ -75,12 +75,17 @@ class CompositeAtom(Atom):
 	def calsize(self):
 		self.size = 8 + sum([atom.calsize() for atom in self.body])
 		return self.size
-	def get(self, k):
+	def get1(self, k):
 		for a in self.body:
 			if a.type == k:
 				return a
 		else:
 			raise Exception('atom not found: '+k)
+	def get(self, *keys):
+		atom = self
+		for k in keys:
+			atom = atom.get1(k)
+		return atom
 	def get_all(self, k):
 		return filter(lambda x: x.type == k, self.body)
 
@@ -760,58 +765,63 @@ def merge_moov(moovs, mdats):
 		assert len(traks) == 2
 		tkhd_durations[0] += traks[0].get('tkhd').get('duration')
 		tkhd_durations[1] += traks[1].get('tkhd').get('duration')
-		mdhd_durations[0] += traks[0].get('mdia').get('mdhd').get('duration')
-		mdhd_durations[1] += traks[1].get('mdia').get('mdhd').get('duration')
+		mdhd_durations[0] += traks[0].get('mdia', 'mdhd').get('duration')
+		mdhd_durations[1] += traks[1].get('mdia', 'mdhd').get('duration')
 	#mvhd_duration = min(mvhd_duration, tkhd_durations)
 
-	stts0 = merge_stts(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stts').body[1] for x in moovs)
-	stts1 = merge_stts(x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stts').body[1] for x in moovs)
+	trak0s = [x.get_all('trak')[0] for x in moovs]
+	trak1s = [x.get_all('trak')[1] for x in moovs]
 
-	stss = merge_stss(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stss').body[1] for x in moovs)
+	stts0 = merge_stts(x.get('mdia', 'minf', 'stbl', 'stts').body[1] for x in trak0s)
+	stts1 = merge_stts(x.get('mdia', 'minf', 'stbl', 'stts').body[1] for x in trak1s)
 
-	stsc0 = merge_stsc((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs), (len(x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco').body[1]) for x in moovs))
-	stsc1 = merge_stsc((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsc').body[1] for x in moovs), (len(x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco').body[1]) for x in moovs))
+	stss = merge_stss(x.get('mdia', 'minf', 'stbl', 'stss').body[1] for x in trak0s)
 
-	stco0 = merge_stco((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco').body[1] for x in moovs), mdats)
-	stco1 = merge_stco((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco').body[1] for x in moovs), mdats)
+	stsc0 = merge_stsc((x.get('mdia', 'minf', 'stbl', 'stsc').body[1] for x in trak0s), (len(x.get('mdia', 'minf', 'stbl', 'stco').body[1]) for x in trak0s))
+	stsc1 = merge_stsc((x.get('mdia', 'minf', 'stbl', 'stsc').body[1] for x in trak1s), (len(x.get('mdia', 'minf', 'stbl', 'stco').body[1]) for x in trak1s))
 
-	stsz0 = merge_stsz((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsz').body[3] for x in moovs))
-	stsz1 = merge_stsz((x.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsz').body[3] for x in moovs))
+	stco0 = merge_stco((x.get('mdia', 'minf', 'stbl', 'stco').body[1] for x in trak0s), mdats)
+	stco1 = merge_stco((x.get('mdia', 'minf', 'stbl', 'stco').body[1] for x in trak1s), mdats)
 
-	ctts = sum((x.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('ctts').body[1] for x in moovs), [])
+	stsz0 = merge_stsz((x.get('mdia', 'minf', 'stbl', 'stsz').body[3] for x in trak0s))
+	stsz1 = merge_stsz((x.get('mdia', 'minf', 'stbl', 'stsz').body[3] for x in trak1s))
+
+	ctts = sum((x.get('mdia', 'minf', 'stbl', 'ctts').body[1] for x in trak0s), [])
 
 	moov = moovs[0]
 
 	moov.get('mvhd').set('duration', mvhd_duration)
-	moov.get_all('trak')[0].get('tkhd').set('duration', tkhd_durations[0])
-	moov.get_all('trak')[1].get('tkhd').set('duration', tkhd_durations[1])
-	moov.get_all('trak')[0].get('mdia').get('mdhd').set('duration', mdhd_durations[0])
-	moov.get_all('trak')[1].get('mdia').get('mdhd').set('duration', mdhd_durations[1])
+	trak0 = moov.get_all('trak')[0]
+	trak1 = moov.get_all('trak')[1]
+	trak0.get('tkhd').set('duration', tkhd_durations[0])
+	trak1.get('tkhd').set('duration', tkhd_durations[1])
+	trak0.get('mdia', 'mdhd').set('duration', mdhd_durations[0])
+	trak1.get('mdia', 'mdhd').set('duration', mdhd_durations[1])
 
-	stts_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stts')
+	stts_atom = trak0.get('mdia', 'minf', 'stbl', 'stts')
 	stts_atom.body = stts_atom.body[0], stts0
-	stts_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stts')
+	stts_atom = trak1.get('mdia', 'minf', 'stbl', 'stts')
 	stts_atom.body = stts_atom.body[0], stts1
 
-	stss_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stss')
+	stss_atom = trak0.get('mdia', 'minf', 'stbl', 'stss')
 	stss_atom.body = stss_atom.body[0], stss
 
-	stsc_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsc')
+	stsc_atom = trak0.get('mdia', 'minf', 'stbl', 'stsc')
 	stsc_atom.body = stsc_atom.body[0], stsc0
-	stsc_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsc')
+	stsc_atom = trak1.get('mdia', 'minf', 'stbl', 'stsc')
 	stsc_atom.body = stsc_atom.body[0], stsc1
 
-	stco_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom = trak0.get('mdia', 'minf', 'stbl', 'stco')
 	stco_atom.body = stss_atom.body[0], stco0
-	stco_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom = trak1.get('mdia', 'minf', 'stbl', 'stco')
 	stco_atom.body = stss_atom.body[0], stco1
 
-	stsz_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stsz')
+	stsz_atom = trak0.get('mdia', 'minf', 'stbl', 'stsz')
 	stsz_atom.body = stsz_atom.body[0], stsz_atom.body[1], len(stsz0), stsz0
-	stsz_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stsz')
+	stsz_atom = trak1.get('mdia', 'minf', 'stbl', 'stsz')
 	stsz_atom.body = stsz_atom.body[0], stsz_atom.body[1], len(stsz1), stsz1
 
-	ctts_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('ctts')
+	ctts_atom = trak0.get('mdia', 'minf', 'stbl', 'ctts')
 	ctts_atom.body = ctts_atom.body[0], ctts
 
 	old_moov_size = moov.size
@@ -819,9 +829,9 @@ def merge_moov(moovs, mdats):
 	new_mdat_start = mdats[0].body[1] + new_moov_size - old_moov_size
 	stco0 = map(lambda x: x + new_mdat_start, stco0)
 	stco1 = map(lambda x: x + new_mdat_start, stco1)
-	stco_atom = moov.get_all('trak')[0].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom = trak0.get('mdia', 'minf', 'stbl', 'stco')
 	stco_atom.body = stss_atom.body[0], stco0
-	stco_atom = moov.get_all('trak')[1].get('mdia').get('minf').get('stbl').get('stco')
+	stco_atom = trak1.get('mdia', 'minf', 'stbl', 'stco')
 	stco_atom.body = stss_atom.body[0], stco1
 
 	return moov
