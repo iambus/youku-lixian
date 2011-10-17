@@ -65,8 +65,8 @@ def find_video(info, stream_type=None):
 
 	urls = []
 	for s in segs[stream_type]:
-		no = '%02d' % int(s['no'])
-		url = 'http://f.youku.com/player/getFlvPath/sid/%s_%s/st/%s/fileid/%s%s%s?K=%s&ts=%s' % (sid, no, file_type, vid[:8], no, vid[10:], s['k'], s['seconds'])
+		no = '%02x' % int(s['no'])
+		url = 'http://f.youku.com/player/getFlvPath/sid/%s_%s/st/%s/fileid/%s%s%s?K=%s&ts=%s' % (sid, no, file_type, vid[:8], no.upper(), vid[10:], s['k'], s['seconds'])
 		urls.append(url)
 	return urls
 
