@@ -61,6 +61,15 @@ class Atom:
 			self.write1(stream)
 			for atom in self.body:
 				atom.write(stream)
+	def calsize(self):
+		oldsize = self.size # TODO: remove
+		assert type(self.body) in (str, list), '%s: %s' % (self.type, type(self.body))
+		if type(self.body) == str:
+			pass
+		else:
+			self.size = 8 + sum([atom.calsize() for atom in self.body])
+		assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+		return self.size
 
 def read_raw(stream, size, left, type):
 	assert size == left + 8
@@ -222,6 +231,11 @@ def read_stsd(stream, size, left, type):
 			write_uint(stream, len(self.body[1]))
 			for atom in self.body[1]:
 				atom.write(stream)
+		def calsize(self):
+			oldsize = self.size # TODO: remove
+			self.size = 8 + 4 + 4 + sum([atom.calsize() for atom in self.body[1]])
+			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+			return self.size
 	return stsd_atom('stsd', size, (value, children))
 
 def read_avc1(stream, size, left, type):
@@ -280,6 +294,11 @@ def read_stts(stream, size, left, type):
 			for sample_count, sample_duration in self.body[1]:
 				write_uint(stream, sample_count)
 				write_uint(stream, sample_duration)
+		def calsize(self):
+			oldsize = self.size # TODO: remove
+			self.size = 8 + 4 + 4 + len(self.body[1]) * 8
+			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+			return self.size
 	return stts_atom('stts', size, (value, samples))
 
 def read_stss(stream, size, left, type):
@@ -306,6 +325,11 @@ def read_stss(stream, size, left, type):
 			write_uint(stream, len(self.body[1]))
 			for sample in self.body[1]:
 				write_uint(stream, sample)
+		def calsize(self):
+			oldsize = self.size # TODO: remove
+			self.size = 8 + 4 + 4 + len(self.body[1]) * 4
+			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+			return self.size
 	return stss_atom('stss', size, (value, samples))
 
 def read_stsc(stream, size, left, type):
@@ -342,6 +366,11 @@ def read_stsc(stream, size, left, type):
 				write_uint(stream, first_chunk)
 				write_uint(stream, samples_per_chunk)
 				write_uint(stream, sample_description_index)
+		def calsize(self):
+			oldsize = self.size # TODO: remove
+			self.size = 8 + 4 + 4 + len(self.body[1]) * 12
+			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+			return self.size
 	return stsc_atom('stsc', size, (value, chunks))
 
 def read_stsz(stream, size, left, type):
@@ -374,6 +403,11 @@ def read_stsz(stream, size, left, type):
 			write_uint(stream, self.body[2])
 			for entry_size in self.body[3]:
 				write_uint(stream, entry_size)
+		def calsize(self):
+			oldsize = self.size # TODO: remove
+			self.size = 8 + 4 + 8 + len(self.body[3]) * 4
+			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+			return self.size
 	return stsz_atom('stsz', size, (value, sample_size, sample_count, sizes))
 
 def read_stco(stream, size, left, type):
@@ -400,6 +434,11 @@ def read_stco(stream, size, left, type):
 			write_uint(stream, len(self.body[1]))
 			for chunk_offset in self.body[1]:
 				write_uint(stream, chunk_offset)
+		def calsize(self):
+			oldsize = self.size # TODO: remove
+			self.size = 8 + 4 + 4 + len(self.body[1]) * 4
+			assert oldsize == self.size, '%s: %d, %d' % (self.type, oldsize, self.size) # TODO: remove
+			return self.size
 	return stco_atom('stco', size, (value, offsets))
 
 def read_smhd(stream, size, left, type):
@@ -472,6 +511,8 @@ def read_mdat(stream, size, left, type):
 			source.seek(source_start)
 			self.write1(stream)
 			copy_stream(source, stream, source_size)
+		def calsize(self):
+			return self.size
 	return mdat_atom('mdat', size, (stream, source_start, source_size))
 
 atom_readers = {
@@ -546,5 +587,8 @@ def read_atom(stream):
 def write_atom(stream, atom):
 	atom.write(stream)
 
+
+def merge_moov(moovs):
+	raise NotImplementedError()
 
 
