@@ -110,6 +110,11 @@ def youku_download(url, output_dir='', stream_type=None):
 			concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
 			for flv in flvs:
 				os.remove(flv)
+		elif file_type == 'mp4':
+			from mp4_join import concat_mp4s
+			concat_mp4s(flvs, os.path.join(output_dir, title+'.mp4'))
+			for flv in flvs:
+				os.remove(flv)
 		else:
 			print "Can't join %s files" % file_type
 
