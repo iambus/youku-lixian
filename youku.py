@@ -70,16 +70,55 @@ def find_video(info, stream_type=None):
 		urls.append(url)
 	return urls
 
+class SimpleProgressBar:
+	def __init__(self):
+		self.displayed = False
+	def update(self, percent):
+		self.displayed = True
+		bar_size = 40
+		percent = int(percent*100)
+		if percent > 100:
+			percent = 100
+		dots = bar_size * percent / 100
+		plus = percent - dots / bar_size * 100
+		if plus > 0.8:
+			plus = '='
+		elif plus > 0.4:
+			plu = '>'
+		else:
+			plus = ''
+		bar = '=' * dots + plus
+		bar = '{:>3}%[{:<40}]'.format(percent, bar)
+		sys.stdout.write('\r'+bar)
+		sys.stdout.flush()
+	def done(self):
+		if self.displayed:
+			print
+			self.displayed = False
+
 def url_save(url, filepath):
 	response = urllib2.urlopen(url)
+	file_size = int(response.headers['content-length'])
+	assert file_size
 	if os.path.exists(filepath):
-		if int(response.headers['content-length']) == os.path.getsize(filepath):
+		if file_size == os.path.getsize(filepath):
 			print 'Skip %s: file already exists' % os.path.basename(filepath)
 			return
 		else:
 			print 'Overwriting', os.path.basename(filepath), '...'
 	with open(filepath, 'wb') as output:
-		shutil.copyfileobj(response, output)
+		bar = SimpleProgressBar()
+		received = 0
+		while True:
+			buffer = response.read(1024*256)
+			if not buffer:
+				break
+			received += len(buffer)
+			output.write(buffer)
+			bar.update(float(received)/file_size)
+		#shutil.copyfileobj(response, output)
+		bar.done()
+	assert received == file_size == os.path.getsize(filepath)
 
 def file_type_of_url(url):
 	return str(re.search(r'/st/([^/]+)/', url).group(1))
