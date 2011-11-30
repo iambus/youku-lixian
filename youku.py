@@ -15,6 +15,9 @@ def youku_url(url):
 	m = re.match(r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf', url)
 	if m:
 		return 'http://v.youku.com/v_show/id_%s.html' % m.group(1)
+	m = re.search(r'loader\.swf\?VideoIDS=([\w=]+)', url)
+	if m:
+		return 'http://v.youku.com/v_show/id_%s.html' % m.group(1)
 	if re.match(r'^\d+$', url):
 		return 'http://v.youku.com/v_show/id_%s.html' % url
 	raise Exception('Invalid youku URL: '+url)
