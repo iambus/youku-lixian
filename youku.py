@@ -9,24 +9,40 @@ import os.path
 import shutil
 import sys
 
-def youku_url(url):
-	if re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url):
+def r1(pattern, text):
+	m = re.match(pattern, url)
+	if m:
+		return m.group(1)
+
+def find_video_id_from_url(url):
+	patterns = [r'http://v.youku.com/v_show/id_([\w=]+).html',
+	            r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf',
+	            r'loader\.swf\?VideoIDS=([\w=]+)',
+				r'\d+']
+	for p in patterns:
+		m = r1(p, url)
+		if m:
+			return m.group(1)
+
+def find_video_id_from_playlist(url):
+	m = re.match(r'http://v.youku.com/v_playlist/f16711743o1p0.html', url)
+	if m:
 		return url
-	m = re.match(r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf', url)
-	if m:
-		return 'http://v.youku.com/v_show/id_%s.html' % m.group(1)
-	m = re.search(r'loader\.swf\?VideoIDS=([\w=]+)', url)
-	if m:
-		return 'http://v.youku.com/v_show/id_%s.html' % m.group(1)
-	if re.match(r'^\d+$', url):
-		return 'http://v.youku.com/v_show/id_%s.html' % url
+
+def youku_url(url):
+	id = find_video_id_from_url(url)
+	if id:
+		return 'http://v.youku.com/v_show/id_%s.html' % id
+	if re.match(r'http://v.youku.com/v_playlist/\w+.html', url):
+		return url
 	raise Exception('Invalid youku URL: '+url)
 
 def parse_page(url):
 	url = youku_url(url)
 	page = urllib2.urlopen(url).read()
 	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
-	title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
+	#title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
+	title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
 	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
 	subtitle = re.search(r'<span class="subtitle" id="subtitle">([^<>]*)</span>', page)
 	if subtitle:
