@@ -44,6 +44,8 @@ def parse_page(url):
 	#title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
 	title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
 	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
+	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
+		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
 	subtitle = re.search(r'<span class="subtitle" id="subtitle">([^<>]*)</span>', page)
 	if subtitle:
 		subtitle = subtitle.group(1).decode('utf-8').strip()
