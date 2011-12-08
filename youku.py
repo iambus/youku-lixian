@@ -20,9 +20,9 @@ def find_video_id_from_url(url):
 	            r'loader\.swf\?VideoIDS=([\w=]+)',
 				r'\d+']
 	for p in patterns:
-		m = r1(p, url)
-		if m:
-			return m.group(1)
+		id = r1(p, url)
+		if id:
+			return id
 
 def find_video_id_from_playlist(url):
 	m = re.match(r'http://v.youku.com/v_playlist/f16711743o1p0.html', url)
