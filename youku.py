@@ -230,6 +230,8 @@ def parse_playlist(url):
 	return ids
 
 def youku_download_playlist(url):
+	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
+		url = re.search(r'<div class="btnplay">.*href="([^"]+)"', get_html(url)).group(1)
 	assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
 	ids = parse_playlist(url)
 	for i, id in enumerate(ids):
