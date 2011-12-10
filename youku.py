@@ -234,6 +234,9 @@ def youku_download_playlist(url):
 	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
 		url = find_video_id_from_show_page(url)
 	assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
+	# TODO: support http://u.youku.com/user_playlist/pid_\d+_id_[\w=]+.html
+	# TODO: support http://www.youku.com/playlist_show/id_\d+.html
+	# TODO: support http://v.youku.com/v_playlist/f\d+o1p\d+.html
 	ids = parse_playlist(url)
 	for i, id in enumerate(ids):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
