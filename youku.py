@@ -21,7 +21,7 @@ def find_video_id_from_url(url):
 	patterns = [r'http://v.youku.com/v_show/id_([\w=]+).html',
 	            r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf',
 	            r'loader\.swf\?VideoIDS=([\w=]+)',
-				r'([\w=]+)']
+				r'^([\w=]+)$']
 	for p in patterns:
 		id = r1(p, url)
 		if id:
@@ -44,8 +44,11 @@ def parse_page(url):
 	url = youku_url(url)
 	page = get_html(url)
 	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
-	#title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
-	title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
+	if re.search(r'v_playlist', url):
+		# if we are playing a viedo from play list, the meta title might be incorrect
+		title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
+	else:
+		title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
 	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
 		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
@@ -227,6 +230,7 @@ def parse_playlist(url):
 	return ids
 
 def youku_download_playlist(url):
+	assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
 	ids = parse_playlist(url)
 	for i, id in enumerate(ids):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
