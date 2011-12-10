@@ -213,8 +213,9 @@ def parse_playlist_videos(html):
 def parse_playlist_pages(html):
 	m = re.search(r'<ul class="pages">.*?</ul>', html, flags=re.S)
 	if m:
-		#n = len(re.findall(r'<li', m.group()))
-		return ['http://v.youku.com' + url + '?__rt=1&__ro=listShow' for url in re.findall(r'href="([^"]+)"', m.group())]
+		urls = re.findall(r'href="([^"]+)"', m.group())
+		x1, x2, x3 = re.match(r'^(.*page_)(\d+)(_.*)$', urls[-1]).groups()
+		return ['http://v.youku.com%s%s%s?__rt=1&__ro=listShow' % (x1, i, x3) for i in range(2, int(x2)+1)]
 	else:
 		return []
 
