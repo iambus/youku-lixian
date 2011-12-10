@@ -886,7 +886,6 @@ def main():
 		usage()
 		sys.exit(1)
 	output = None
-	verbose = False
 	for o, a in opts:
 		if o in ("-h", "--help"):
 			usage()

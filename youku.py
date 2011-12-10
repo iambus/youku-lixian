@@ -9,8 +9,11 @@ import os.path
 import shutil
 import sys
 
+def get_html(url):
+	return urllib2.urlopen(url).read()
+
 def r1(pattern, text):
-	m = re.match(pattern, url)
+	m = re.match(pattern, text)
 	if m:
 		return m.group(1)
 
@@ -18,7 +21,7 @@ def find_video_id_from_url(url):
 	patterns = [r'http://v.youku.com/v_show/id_([\w=]+).html',
 	            r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf',
 	            r'loader\.swf\?VideoIDS=([\w=]+)',
-				r'\d+']
+				r'([\w=]+)']
 	for p in patterns:
 		id = r1(p, url)
 		if id:
@@ -39,7 +42,7 @@ def youku_url(url):
 
 def parse_page(url):
 	url = youku_url(url)
-	page = urllib2.urlopen(url).read()
+	page = get_html(url)
 	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
 	#title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
 	title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
@@ -54,7 +57,7 @@ def parse_page(url):
 	return id2, title, subtitle
 
 def get_info(videoId2):
-	return json.loads(urllib2.urlopen('http://v.youku.com/player/getPlayList/VideoIDS/'+videoId2).read())
+	return json.loads(get_html('http://v.youku.com/player/getPlayList/VideoIDS/'+videoId2))
 
 def find_video(info, stream_type=None):
 	#key = '%s%x' % (info['data'][0]['key2'], int(info['data'][0]['key1'], 16) ^ 0xA55AA5A5)
@@ -201,7 +204,64 @@ def youku_download(url, output_dir='', stream_type=None):
 		else:
 			print "Can't join %s files" % file_type
 
+def parse_playlist_videos(html):
+	return re.findall(r'id="A_(\w+)"', html)
+
+def parse_playlist_pages(html):
+	m = re.search(r'<ul class="pages">.*?</ul>', html, flags=re.S)
+	if m:
+		#n = len(re.findall(r'<li', m.group()))
+		return ['http://v.youku.com' + url + '?__rt=1&__ro=listShow' for url in re.findall(r'href="([^"]+)"', m.group())]
+	else:
+		return []
+
+def parse_playlist(url):
+	html = get_html(url)
+	video_id = re.search(r"var\s+videoId\s*=\s*'(\d+)'", html).group(1)
+	show_id = re.search(r'var\s+showid\s*=\s*"(\d+)"', html).group(1)
+	list_url = 'http://v.youku.com/v_vpofficiallist/page_1_showid_%s_id_%s.html?__rt=1&__ro=listShow' % (show_id, video_id)
+	html = get_html(list_url)
+	ids = parse_playlist_videos(html)
+	for url in parse_playlist_pages(html):
+		ids.extend(parse_playlist_videos(get_html(url)))
+	return ids
+
+def youku_download_playlist(url):
+	ids = parse_playlist(url)
+	for i, id in enumerate(ids):
+		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
+		youku_download(id)
+
+def usage():
+	print 'python youku.py [--playlist] url ...'
+
+def main():
+	import sys, getopt
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "playlist"])
+	except getopt.GetoptError, err:
+		usage()
+		sys.exit(1)
+	playlist = False
+	for o, a in opts:
+		if o in ("-h", "--help"):
+			usage()
+			sys.exit()
+		elif o in ("--playlist",):
+			playlist = True
+		else:
+			usage()
+			sys.exit(1)
+	if not args:
+		usage()
+		sys.exit(1)
+
+	for url in args:
+		if playlist:
+			youku_download_playlist(url)
+		else:
+			youku_download(url)
+
 if __name__ == '__main__':
-	for url in sys.argv[1:]:
-		youku_download(url)
+	main()
 
