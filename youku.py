@@ -27,15 +27,15 @@ def find_video_id_from_url(url):
 		if id:
 			return id
 
-def find_video_id_from_playlist(url):
-	m = re.match(r'http://v.youku.com/v_playlist/f16711743o1p0.html', url)
-	if m:
-		return url
+def find_video_id_from_show_page(url):
+	return re.search(r'<div class="btnplay">.*href="([^"]+)"', get_html(url)).group(1)
 
 def youku_url(url):
 	id = find_video_id_from_url(url)
 	if id:
 		return 'http://v.youku.com/v_show/id_%s.html' % id
+	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
+		return find_video_id_from_show_page(url)
 	if re.match(r'http://v.youku.com/v_playlist/\w+.html', url):
 		return url
 	raise Exception('Invalid youku URL: '+url)
@@ -231,7 +231,7 @@ def parse_playlist(url):
 
 def youku_download_playlist(url):
 	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
-		url = re.search(r'<div class="btnplay">.*href="([^"]+)"', get_html(url)).group(1)
+		url = find_video_id_from_show_page(url)
 	assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
 	ids = parse_playlist(url)
 	for i, id in enumerate(ids):
