@@ -234,7 +234,10 @@ def parse_playlist(url):
 	return ids
 
 def parse_vplaylist(url):
-	id = r1_of([r'http://www.youku.com/playlist_show/id_(\d+)(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html', r'http://v.youku.com/v_playlist/f(\d+)o1p\d+.html'], url)
+	id = r1_of([r'http://www.youku.com/playlist_show/id_(\d+)(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html',
+	            r'http://v.youku.com/v_playlist/f(\d+)o1p\d+.html',
+				r'http://u.youku.com/user_playlist/pid_(\d+)_id_[\w=]+(?:_page_\d+)?.html'],
+	           url)
 	assert id, 'not valid vplaylist url: '+url
 	url = 'http://www.youku.com/playlist_show/id_%s.html' % id
 	n = int(re.search(r'<span class="num">(\d+)</span>', get_html(url)).group(1))
@@ -247,10 +250,11 @@ def youku_download_playlist(url):
 		ids = parse_vplaylist(url)
 	elif re.match(r'http://v.youku.com/v_playlist/f\d+o1p\d+.html', url):
 		ids = parse_vplaylist(url)
+	elif re.match(r'http://u.youku.com/user_playlist/pid_(\d+)_id_[\w=]+(?:_page_\d+)?.html', url):
+		ids = parse_vplaylist(url)
 	else:
 		assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
 		ids = parse_playlist(url)
-	# TODO: support http://u.youku.com/user_playlist/pid_\d+_id_[\w=]+.html
 	for i, id in enumerate(ids):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
 		youku_download(id)
