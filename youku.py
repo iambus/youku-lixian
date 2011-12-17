@@ -17,15 +17,18 @@ def r1(pattern, text):
 	if m:
 		return m.group(1)
 
+def r1_of(patterns, text):
+	for p in patterns:
+		x = r1(p, text)
+		if x:
+			return x
+
 def find_video_id_from_url(url):
 	patterns = [r'http://v.youku.com/v_show/id_([\w=]+).html',
 	            r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf',
 	            r'loader\.swf\?VideoIDS=([\w=]+)',
 				r'^([\w=]+)$']
-	for p in patterns:
-		id = r1(p, url)
-		if id:
-			return id
+	return r1_of(patterns, url)
 
 def find_video_id_from_show_page(url):
 	return re.search(r'<div class="btnplay">.*href="([^"]+)"', get_html(url)).group(1)
@@ -230,14 +233,24 @@ def parse_playlist(url):
 		ids.extend(parse_playlist_videos(get_html(url)))
 	return ids
 
+def parse_vplaylist(url):
+	id = r1_of([r'http://www.youku.com/playlist_show/id_(\d+).html', r'http://v.youku.com/v_playlist/f(\d+)o1p\d+.html'], url)
+	assert id, 'not valid vplaylist url: '+url
+	url = 'http://www.youku.com/playlist_show/id_%s.html' % id
+	n = int(re.search(r'<span class="num">(\d+)</span>', get_html(url)).group(1))
+	return ['http://v.youku.com/v_playlist/f%so1p%s.html' % (id, i) for i in range(n)]
+
 def youku_download_playlist(url):
 	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
 		url = find_video_id_from_show_page(url)
-	assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
+	if re.match(r'http://www.youku.com/playlist_show/id_\d+.html', url):
+		ids = parse_vplaylist(url)
+	elif re.match(r'http://v.youku.com/v_playlist/f\d+o1p\d+.html', url):
+		ids = parse_vplaylist(url)
+	else:
+		assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
+		ids = parse_playlist(url)
 	# TODO: support http://u.youku.com/user_playlist/pid_\d+_id_[\w=]+.html
-	# TODO: support http://www.youku.com/playlist_show/id_\d+.html
-	# TODO: support http://v.youku.com/v_playlist/f\d+o1p\d+.html
-	ids = parse_playlist(url)
 	for i, id in enumerate(ids):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
 		youku_download(id)
