@@ -1,5 +1,5 @@
 
-从优酷网站上下载flv视频文件的Python脚本。
+Python脚本。从优酷网站上下载flv/mp4分段视频文件，并拼接。除Python标准库外无第三方依赖。测试环境：Python 2.7。
 
 python youku.py urls...
 python youku.py --playlist url
