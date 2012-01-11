@@ -3,15 +3,24 @@ import urllib2
 import os.path
 import sys
 
+def ungzip(s):
+	from StringIO import StringIO
+	import gzip
+	buffer = StringIO(s)
+	f = gzip.GzipFile(fileobj=buffer)
+	return f.read()
+
+def undeflate(s):
+	import zlib
+	return zlib.decompress(s, -zlib.MAX_WBITS)
+
 def get_html(url):
 	response = urllib2.urlopen(url)
 	data = response.read()
 	if response.info().get('Content-Encoding') == 'gzip':
-		from StringIO import StringIO
-		import gzip
-		buf = StringIO(data)
-		f = gzip.GzipFile(fileobj=buf)
-		data = f.read()
+		data = ungzip(data)
+	elif response.info().get('Content-Encoding') == 'deflate':
+		data = undeflate(data)
 	return data
 
 
@@ -92,18 +101,20 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 	assert ext in ('flv', 'mp4')
 	if not total_size:
 		total_size = urls_size(urls)
+	filename = '%s.%s' % (title, ext)
+	filepath = os.path.join(output_dir, filename)
+	if os.path.exists(filepath) and os.path.getsize(filepath) >= total_size * 0.9:
+		print 'Skip %s: file already exists' % filepath
+		return
 	bar = SimpleProgressBar(total_size, len(urls))
 	if len(urls) == 1:
 		url = urls[0]
-		filename = '%s.%s' % (title, ext)
-		filepath = os.path.join(output_dir, filename)
 		print 'Downloading %s ...' % filename
 		url_save(url, filepath, bar)
 		bar.done()
 	else:
 		flvs = []
-		file_type = ext
-		print 'Downloading %s.%s ...' % (title, file_type)
+		print 'Downloading %s.%s ...' % (title, ext)
 		for i, url in enumerate(urls):
 			filename = '%s[%02d].%s' % (title, i, ext)
 			filepath = os.path.join(output_dir, filename)
@@ -112,16 +123,16 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 			bar.update_piece(i+1)
 			url_save(url, filepath, bar)
 		bar.done()
-		if file_type == 'flv':
+		if ext == 'flv':
 			from flv_join import concat_flvs
 			concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
 			for flv in flvs:
 				os.remove(flv)
-		elif file_type == 'mp4':
+		elif ext == 'mp4':
 			from mp4_join import concat_mp4s
 			concat_mp4s(flvs, os.path.join(output_dir, title+'.mp4'))
 			for flv in flvs:
 				os.remove(flv)
 		else:
-			print "Can't join %s files" % file_type
+			print "Can't join %s files" % ext
 
