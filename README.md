@@ -7,8 +7,8 @@ youku-lixian
 从优酷网站上下载flv/mp4分段视频文件，并拼接。友情支持bilibili。
 除Python标准库外无第三方依赖。测试环境：Python 2.7。
 
-python youku.py urls...
-python youku.py --playlist url
+	python youku.py urls...
+	python youku.py --playlist url
 
 安装
 ----
@@ -36,13 +36,13 @@ https://github.com/iambus/youku-lixian/downloads
 优酷下载
 --------
 
-python youku.py urls...
-python youku.py --playlist url
+	python youku.py urls...
+	python youku.py --playlist url
 
 bilibili下载
 ------------
 
-python bilibili.py urls...
+	python bilibili.py urls...
 
 其他下载
 --------
