@@ -4,7 +4,7 @@ youku-lixian
 
 简介
 ----
-从优酷网站上下载flv/mp4分段视频文件，并拼接。友情支持bilibili。
+从优酷网站上下载flv或mp4格式的分段视频文件，并拼接。友情支持bilibili。
 除Python标准库外无第三方依赖。测试环境：Python 2.7。
 
 	python youku.py urls...
@@ -27,7 +27,7 @@ youku-lixian
 
 4. 在命令行里运行
 
-        python youku.py 视频连接地址
+        python youku.py 视频链接地址
 
 注：不方便安装git的用户可以选择跳过前两步，在github网页上下载最新的源代码包（选择"Download as zip"或者"Download as tar.gz"）：
 
