@@ -46,7 +46,6 @@ def url_size(url):
 	request.get_method = lambda: 'HEAD'
 	response = urllib2.urlopen(request)
 	size = int(response.headers['content-length'])
-	print size
 	return size
 
 
