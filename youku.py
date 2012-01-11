@@ -5,9 +5,8 @@ import json
 from random import randint
 from time import time
 import re
-import os.path
-import shutil
 import sys
+from common import *
 
 def get_html(url):
 	return urllib2.urlopen(url).read()
@@ -100,66 +99,6 @@ def find_video(info, stream_type=None):
 		urls.append((url, int(s['size'])))
 	return urls
 
-class SimpleProgressBar:
-	def __init__(self, total_size, total_pieces=1):
-		self.displayed = False
-		self.total_size = total_size
-		self.total_pieces = total_pieces
-		self.current_piece = 1
-		self.received = 0
-	def update(self):
-		self.displayed = True
-		bar_size = 40
-		percent = self.received*100/self.total_size
-		if percent > 100:
-			percent = 100
-		dots = bar_size * percent / 100
-		plus = percent - dots / bar_size * 100
-		if plus > 0.8:
-			plus = '='
-		elif plus > 0.4:
-			plu = '>'
-		else:
-			plus = ''
-		bar = '=' * dots + plus
-		bar = '{0:>3}%[{1:<40}] {2}/{3}'.format(percent, bar, self.current_piece, self.total_pieces)
-		sys.stdout.write('\r'+bar)
-		sys.stdout.flush()
-	def update_received(self, n):
-		self.received += n
-		self.update()
-	def update_piece(self, n):
-		self.current_piece = n
-	def done(self):
-		if self.displayed:
-			print
-			self.displayed = False
-
-def url_save(url, filepath, bar):
-	response = urllib2.urlopen(url)
-	file_size = int(response.headers['content-length'])
-	assert file_size
-	if os.path.exists(filepath):
-		if file_size == os.path.getsize(filepath):
-			if bar:
-				bar.done()
-			print 'Skip %s: file already exists' % os.path.basename(filepath)
-			return
-		else:
-			if bar:
-				bar.done()
-			print 'Overwriting', os.path.basename(filepath), '...'
-	with open(filepath, 'wb') as output:
-		received = 0
-		while True:
-			buffer = response.read(1024*256)
-			if not buffer:
-				break
-			received += len(buffer)
-			output.write(buffer)
-			if bar:
-				bar.update_received(len(buffer))
-	assert received == file_size == os.path.getsize(filepath)
 
 def file_type_of_url(url):
 	return str(re.search(r'/st/([^/]+)/', url).group(1))
@@ -177,38 +116,7 @@ def youku_download(url, output_dir='', stream_type=None):
 	urls, sizes = zip(*find_video(info, stream_type))
 	total_size = sum(sizes)
 	bar = SimpleProgressBar(total_size, len(urls))
-	assert urls
-	if len(urls) == 1:
-		url = urls[0]
-		filename = '%s.%s' % (title, file_type_of_url(url))
-		filepath = os.path.join(output_dir, filename)
-		print 'Downloading %s ...' % filename
-		url_save(url, filepath, bar)
-		bar.done()
-	else:
-		flvs = []
-		file_type = file_type_of_url(urls[0])
-		print 'Downloading %s.%s ...' % (title, file_type)
-		for i, url in enumerate(urls):
-			filename = '%s[%02d].%s' % (title, i, file_type_of_url(url))
-			filepath = os.path.join(output_dir, filename)
-			flvs.append(filepath)
-			#print 'Downloading %s [%s/%s]...' % (filename, i+1, len(urls))
-			bar.update_piece(i+1)
-			url_save(url, filepath, bar)
-		bar.done()
-		if file_type == 'flv':
-			from flv_join import concat_flvs
-			concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
-			for flv in flvs:
-				os.remove(flv)
-		elif file_type == 'mp4':
-			from mp4_join import concat_mp4s
-			concat_mp4s(flvs, os.path.join(output_dir, title+'.mp4'))
-			for flv in flvs:
-				os.remove(flv)
-		else:
-			print "Can't join %s files" % file_type
+	download_urls(urls, title, file_type_of_url(urls[0]), total_size, output_dir)
 
 def parse_playlist_videos(html):
 	return re.findall(r'id="A_(\w+)"', html)
