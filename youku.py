@@ -8,9 +8,6 @@ import re
 import sys
 from common import *
 
-def get_html(url):
-	return urllib2.urlopen(url).read()
-
 def r1(pattern, text):
 	m = re.match(pattern, text)
 	if m:

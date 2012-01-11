@@ -3,6 +3,18 @@ import urllib2
 import os.path
 import sys
 
+def get_html(url):
+	response = urllib2.urlopen(url)
+	data = response.read()
+	if response.info().get('Content-Encoding') == 'gzip':
+		from StringIO import StringIO
+		import gzip
+		buf = StringIO(data)
+		f = gzip.GzipFile(fileobj=buf)
+		data = f.read()
+	return data
+
+
 def url_save(url, filepath, bar):
 	response = urllib2.urlopen(url)
 	file_size = int(response.headers['content-length'])
@@ -28,6 +40,18 @@ def url_save(url, filepath, bar):
 			if bar:
 				bar.update_received(len(buffer))
 	assert received == file_size == os.path.getsize(filepath)
+
+def url_size(url):
+	request = urllib2.Request(url)
+	request.get_method = lambda: 'HEAD'
+	response = urllib2.urlopen(request)
+	size = int(response.headers['content-length'])
+	print size
+	return size
+
+
+def urls_size(urls):
+	return sum(map(url_size, urls))
 
 class SimpleProgressBar:
 	def __init__(self, total_size, total_pieces=1):
@@ -67,6 +91,8 @@ class SimpleProgressBar:
 def download_urls(urls, title, ext, total_size, output_dir='.'):
 	assert urls
 	assert ext in ('flv', 'mp4')
+	if not total_size:
+		total_size = urls_size(urls)
 	bar = SimpleProgressBar(total_size, len(urls))
 	if len(urls) == 1:
 		url = urls[0]
