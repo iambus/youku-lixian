@@ -11,6 +11,7 @@ def parse_video_info(xml):
 
 def video_info(id):
 	xml = urllib2.urlopen('http://www.bilibili.tv/v_cdn_play?id=%s'%id).read()
+	xml = urllib2.urlopen('http://v.iask.com/v_play.php?vid=%s'%id).read()
 	return parse_video_info(xml)
 
 def get_srt_xml(id):
