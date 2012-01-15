@@ -8,11 +8,6 @@ import re
 import sys
 from common import *
 
-def r1(pattern, text):
-	m = re.match(pattern, text)
-	if m:
-		return m.group(1)
-
 def r1_of(patterns, text):
 	for p in patterns:
 		x = r1(p, text)

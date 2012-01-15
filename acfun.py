@@ -11,11 +11,14 @@ def get_srt_json(id):
 def acfun_download(url):
 	assert re.match(r'http://www.acfun.tv/v/ac(\d+)', url)
 	html = get_html(url)
-	title = re.search(r'<title>([^<>]+)</title>', html).group(1).decode('gbk')
+
+	title = r1(r'<title>([^<>]+)</title>', html).decode('gbk')
 	title = unescape_html(title)
 	title = escape_file_path(title)
 	title = title.replace(' - AcFun.tv', '')
-	id = re.search(r'flashvars="[^"]*id=(\d+)"', html).group(1)
+
+	id = r1(r'flashvars="[^"]*id=(\d+)"', html)
+
 	urls, vstr = video_info(id)
 	download_urls(urls, title, 'flv', total_size=None)
 	json = get_srt_json(id)

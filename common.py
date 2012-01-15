@@ -2,6 +2,12 @@
 import urllib2
 import os.path
 import sys
+import re
+
+def r1(pattern, text):
+	m = re.match(pattern, text)
+	if m:
+		return m.group(1)
 
 def unescape_html(html):
 	import xml.sax.saxutils
@@ -152,17 +158,17 @@ def script_main(script_name, download):
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
 	except getopt.GetoptError, err:
-		usage(script_name)
+		script_usage(script_name)
 		sys.exit(1)
 	for o, a in opts:
 		if o in ("-h", "--help"):
-			usage(script_name)
+			script_usage(script_name)
 			sys.exit()
 		else:
-			usage(script_name)
+			script_usage(script_name)
 			sys.exit(1)
 	if not args:
-		usage(script_name)
+		script_usage(script_name)
 		sys.exit(1)
 
 	for url in args:

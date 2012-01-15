@@ -1,10 +1,10 @@
 youku-lixian
 =============
-优酷视频下载的Python脚本。顺便支持bilibili……
+优酷视频下载的Python脚本。顺便支持其他……
 
 简介
 ----
-从优酷网站上下载flv或mp4格式的分段视频文件，并拼接。友情支持bilibili。
+从优酷网站上下载flv或mp4格式的视频文件（包括分段视频的拼接）。友情支持bilibili，acfun。
 除Python标准库外无第三方依赖。测试环境：Python 2.7。
 
 	python youku.py urls...
@@ -43,6 +43,11 @@ bilibili下载
 ------------
 
 	python bilibili.py urls...
+
+acfun下载
+------------
+
+	python acfun.py urls...
 
 其他下载
 --------

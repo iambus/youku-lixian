@@ -43,10 +43,13 @@ def parse_srt_xml(xml):
 def bilibili_download(url):
 	assert re.match(r'http://www.bilibili.tv/video/av(\d+)', url)
 	html = get_html(url)
-	title = re.search(r'<h2 id="titles">([^<>]+)<a name="titles">', html).group(1).decode('utf-8')
+
+	title = r1(r'<h2 id="titles">([^<>]+)<a name="titles">', html).decode('utf-8')
 	title = unescape_html(title)
 	title = escape_file_path(title)
-	id = re.search(r'vid=(\d+)', html).group(1)
+
+	id = r1(r'vid=(\d+)', html)
+
 	urls, vstr = video_info(id)
 	download_urls(urls, title, 'flv', total_size=None)
 	xml = get_srt_xml(id)
