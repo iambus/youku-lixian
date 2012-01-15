@@ -2,7 +2,8 @@
 
 import re
 from common import *
-from iask import video_info
+from iask import iask_download_by_id
+from youku import youku_download_by_id
 
 def get_srt_json(id):
 	url = 'http://comment.acfun.tv/%s.json' % id
@@ -17,10 +18,18 @@ def acfun_download(url):
 	title = escape_file_path(title)
 	title = title.replace(' - AcFun.tv', '')
 
-	id = r1(r'flashvars="[^"]*id=(\d+)"', html)
+	flashvars = r1(r'flashvars="([^"]+)"', html)
 
-	urls, vstr = video_info(id)
-	download_urls(urls, title, 'flv', total_size=None)
+	id = r1(r'type=video&amp;id=(\d+)', flashvars)
+	if id:
+		iask_download_by_id(id, title)
+	else:
+		id = r1(r'type2=youku&amp;id=(.+)', flashvars)
+		if id:
+			youku_download_by_id(id, title)
+		else:
+			raise NotImplementedError(flashvars)
+
 	json = get_srt_json(id)
 	with open(title + '.json', 'w') as x:
 		x.write(json)

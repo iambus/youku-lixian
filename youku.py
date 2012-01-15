@@ -89,6 +89,12 @@ def find_video(info, stream_type=None):
 def file_type_of_url(url):
 	return str(re.search(r'/st/([^/]+)/', url).group(1))
 
+def youku_download_by_id(id2, title, output_dir='.', stream_type=None):
+	info = get_info(id2)
+	urls, sizes = zip(*find_video(info, stream_type))
+	total_size = sum(sizes)
+	download_urls(urls, title, file_type_of_url(urls[0]), total_size, output_dir)
+
 def youku_download(url, output_dir='', stream_type=None):
 	id2, title, subtitle = parse_page(url)
 	if subtitle:
@@ -98,11 +104,7 @@ def youku_download(url, output_dir='', stream_type=None):
 		if encoding.lower() == 'ascii':
 			encoding = 'utf-8'
 		title = title.encode(encoding)
-	info = get_info(id2)
-	urls, sizes = zip(*find_video(info, stream_type))
-	total_size = sum(sizes)
-	bar = SimpleProgressBar(total_size, len(urls))
-	download_urls(urls, title, file_type_of_url(urls[0]), total_size, output_dir)
+	youku_download_by_id(id2, title, output_dir)
 
 def parse_playlist_videos(html):
 	return re.findall(r'id="A_(\w+)"', html)

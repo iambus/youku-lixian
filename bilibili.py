@@ -1,7 +1,7 @@
 
 import re
 from common import *
-from iask import video_info
+from iask import iask_download_by_id
 
 def get_srt_xml(id):
 	url = 'http://comment.bilibili.tv/dm,%s' % id
@@ -50,8 +50,8 @@ def bilibili_download(url):
 
 	id = r1(r'vid=(\d+)', html)
 
-	urls, vstr = video_info(id)
-	download_urls(urls, title, 'flv', total_size=None)
+	iask_download_by_id(id, title)
+
 	xml = get_srt_xml(id)
 	with open(title + '.xml', 'w') as x:
 		x.write(xml.encode('utf-8'))
