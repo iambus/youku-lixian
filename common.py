@@ -30,14 +30,27 @@ def undeflate(s):
 	import zlib
 	return zlib.decompress(s, -zlib.MAX_WBITS)
 
-def get_html(url):
+def get_response(url):
 	response = urllib2.urlopen(url)
 	data = response.read()
 	if response.info().get('Content-Encoding') == 'gzip':
 		data = ungzip(data)
 	elif response.info().get('Content-Encoding') == 'deflate':
 		data = undeflate(data)
-	return data
+	response.data = data
+	return response
+
+def get_html(url):
+	return get_response(url).data
+
+def get_decoded_html(url):
+	response = get_response(url)
+	data = response.data
+	charset = r1(r'charset=([\w-]+)', response.headers['content-type'])
+	if charset:
+		return data.decode(charset)
+	else:
+		return data
 
 def url_save(url, filepath, bar):
 	response = urllib2.urlopen(url)
