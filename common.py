@@ -3,6 +3,10 @@ import urllib2
 import os.path
 import sys
 
+def unescape_html(html):
+	import xml.sax.saxutils
+	return xml.sax.saxutils.unescape(html)
+
 def ungzip(s):
 	from StringIO import StringIO
 	import gzip
@@ -22,7 +26,6 @@ def get_html(url):
 	elif response.info().get('Content-Encoding') == 'deflate':
 		data = undeflate(data)
 	return data
-
 
 def url_save(url, filepath, bar):
 	response = urllib2.urlopen(url)
