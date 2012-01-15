@@ -10,9 +10,9 @@ def get_srt_json(id):
 
 def acfun_download(url):
 	assert re.match(r'http://www.acfun.tv/v/ac(\d+)', url)
-	html = get_html(url)
+	html = get_html(url).decode('gbk')
 
-	title = r1(r'<title>([^<>]+)</title>', html).decode('gbk')
+	title = r1(r'<title>([^<>]+)</title>', html)
 	title = unescape_html(title)
 	title = escape_file_path(title)
 	title = title.replace(' - AcFun.tv', '')

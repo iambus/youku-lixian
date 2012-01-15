@@ -8,16 +8,10 @@ import re
 import sys
 from common import *
 
-def r1_of(patterns, text):
-	for p in patterns:
-		x = r1(p, text)
-		if x:
-			return x
-
 def find_video_id_from_url(url):
-	patterns = [r'http://v.youku.com/v_show/id_([\w=]+).html',
-	            r'http://player.youku.com/player.php/sid/([\w=]+)/v.swf',
-	            r'loader\.swf\?VideoIDS=([\w=]+)',
+	patterns = [r'^http://v.youku.com/v_show/id_([\w=]+).html',
+	            r'^http://player.youku.com/player.php/sid/([\w=]+)/v.swf',
+	            r'^loader\.swf\?VideoIDS=([\w=]+)',
 				r'^([\w=]+)$']
 	return r1_of(patterns, url)
 
@@ -134,9 +128,9 @@ def parse_playlist(url):
 	return ids
 
 def parse_vplaylist(url):
-	id = r1_of([r'http://www.youku.com/playlist_show/id_(\d+)(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html',
-	            r'http://v.youku.com/v_playlist/f(\d+)o1p\d+.html',
-				r'http://u.youku.com/user_playlist/pid_(\d+)_id_[\w=]+(?:_page_\d+)?.html'],
+	id = r1_of([r'^http://www.youku.com/playlist_show/id_(\d+)(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html',
+	            r'^http://v.youku.com/v_playlist/f(\d+)o1p\d+.html',
+				r'^http://u.youku.com/user_playlist/pid_(\d+)_id_[\w=]+(?:_page_\d+)?.html'],
 	           url)
 	assert id, 'not valid vplaylist url: '+url
 	url = 'http://www.youku.com/playlist_show/id_%s.html' % id
