@@ -47,6 +47,8 @@ bilibili下载
 其他下载
 --------
 
-本脚本完全按需编码（目前就我个人的需求）。如果想支持其他在线视频站点的下载，请在github里New Issue：https://github.com/iambus/youku-lixian/issues。
+本脚本完全按需编码（目前就我个人的需求）。如果想支持其他在线视频站点的下载，请在github里New Issue：
+
+https://github.com/iambus/youku-lixian/issues
 
 
