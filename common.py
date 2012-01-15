@@ -60,7 +60,6 @@ def url_size(url):
 	size = int(response.headers['content-length'])
 	return size
 
-
 def urls_size(urls):
 	return sum(map(url_size, urls))
 
@@ -99,11 +98,17 @@ class SimpleProgressBar:
 			print
 			self.displayed = False
 
+def escape_file_path(path):
+	path = path.replace('/', '-')
+	path = path.replace('\\', '-')
+	return path
+
 def download_urls(urls, title, ext, total_size, output_dir='.'):
 	assert urls
 	assert ext in ('flv', 'mp4')
 	if not total_size:
 		total_size = urls_size(urls)
+	title = escape_file_path(title)
 	filename = '%s.%s' % (title, ext)
 	filepath = os.path.join(output_dir, filename)
 	if os.path.exists(filepath) and os.path.getsize(filepath) >= total_size * 0.9:
@@ -138,4 +143,28 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 				os.remove(flv)
 		else:
 			print "Can't join %s files" % ext
+
+def script_usage(script_name):
+	print 'python %s.py url ...' % script_name
+
+def script_main(script_name, download):
+	import sys, getopt
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
+	except getopt.GetoptError, err:
+		usage(script_name)
+		sys.exit(1)
+	for o, a in opts:
+		if o in ("-h", "--help"):
+			usage(script_name)
+			sys.exit()
+		else:
+			usage(script_name)
+			sys.exit(1)
+	if not args:
+		usage(script_name)
+		sys.exit(1)
+
+	for url in args:
+		download(url)
 
