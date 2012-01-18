@@ -123,6 +123,38 @@ class SimpleProgressBar:
 			print
 			self.displayed = False
 
+class PiecesProgressBar:
+	def __init__(self, total_size, total_pieces=1):
+		self.displayed = False
+		self.total_size = total_size
+		self.total_pieces = total_pieces
+		self.current_piece = 1
+		self.received = 0
+	def update(self):
+		self.displayed = True
+		bar = '{0:>3}%[{1:<40}] {2}/{3}'.format('?', '?'*40, self.current_piece, self.total_pieces)
+		sys.stdout.write('\r'+bar)
+		sys.stdout.flush()
+	def update_received(self, n):
+		self.received += n
+		self.update()
+	def update_piece(self, n):
+		self.current_piece = n
+	def done(self):
+		if self.displayed:
+			print
+			self.displayed = False
+
+class DummyProgressBar:
+	def __init__(self, *args):
+		pass
+	def update_received(self, n):
+		pass
+	def update_piece(self, n):
+		pass
+	def done(self):
+		pass
+
 def escape_file_path(path):
 	path = path.replace('/', '-')
 	path = path.replace('\\', '-')
@@ -132,14 +164,20 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 	assert urls
 	assert ext in ('flv', 'mp4')
 	if not total_size:
-		total_size = urls_size(urls)
+		try:
+			total_size = urls_size(urls)
+		except:
+			pass
 	title = escape_file_path(title)
 	filename = '%s.%s' % (title, ext)
 	filepath = os.path.join(output_dir, filename)
-	if os.path.exists(filepath) and os.path.getsize(filepath) >= total_size * 0.9:
-		print 'Skip %s: file already exists' % filepath
-		return
-	bar = SimpleProgressBar(total_size, len(urls))
+	if total_size:
+		if os.path.exists(filepath) and os.path.getsize(filepath) >= total_size * 0.9:
+			print 'Skip %s: file already exists' % filepath
+			return
+		bar = SimpleProgressBar(total_size, len(urls))
+	else:
+		bar = PiecesProgressBar(total_size, len(urls))
 	if len(urls) == 1:
 		url = urls[0]
 		print 'Downloading %s ...' % filename
