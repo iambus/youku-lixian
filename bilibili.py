@@ -2,6 +2,7 @@
 import re
 from common import *
 from iask import iask_download_by_id
+from youku import youku_download_by_id
 
 def get_srt_xml(id):
 	url = 'http://comment.bilibili.tv/dm,%s' % id
@@ -48,9 +49,17 @@ def bilibili_download(url):
 	title = unescape_html(title)
 	title = escape_file_path(title)
 
-	id = r1(r'vid=(\d+)', html)
-
-	iask_download_by_id(id, title)
+	flashvars = r1(r'flashvars="([^"]+)"', html)
+	assert flashvars
+	id = r1(r'vid=(\d+)', flashvars)
+	if id:
+		iask_download_by_id(id, title)
+	else:
+		id = r1(r'ykid=([\w=]+)', flashvars)
+		if id:
+			youku_download_by_id(id, title)
+		else:
+			raise NotImplementedError(flashvars)
 
 	xml = get_srt_xml(id)
 	with open(title + '.xml', 'w') as x:
