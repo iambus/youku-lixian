@@ -309,7 +309,7 @@ def read_avc1(stream, size, left, type):
 	left -= 78
 
 	child = read_atom(stream)
-	assert child.type == 'avcC', 'if the sub atom is not avcC, you should not cache raw body'
+	assert child.type in ('avcC', 'pasp'), 'if the sub atom is not avcC or pasp (actual %s), you should not cache raw body' % child.type
 	left -= child.size
 	stream.read(left) # XXX
 	return Atom('avc1', size, body)
@@ -621,6 +621,7 @@ atom_readers = {
 	'dref': read_raw,
 	'free': read_raw,
 	'edts': read_raw,
+	'pasp': read_raw,
 
 	'mdat': read_mdat,
 }
