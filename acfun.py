@@ -4,6 +4,7 @@ import re
 from common import *
 from iask import iask_download_by_id
 from youku import youku_download_by_id
+from tudou import tudou_download_by_iid
 
 def get_srt_json(id):
 	url = 'http://comment.acfun.tv/%s.json' % id
@@ -20,15 +21,15 @@ def acfun_download(url):
 
 	flashvars = r1(r'flashvars="([^"]+)"', html)
 
-	id = r1(r'type=video&amp;id=(\d+)', flashvars)
-	if id:
+	t, id = flashvars.split('&amp;id=')
+	if t == 'type=video':
 		iask_download_by_id(id, title)
+	elif t == 'type2=youku':
+		youku_download_by_id(id, title)
+	elif t == 'type2=tudou':
+		tudou_download_by_iid(id, title)
 	else:
-		id = r1(r'type2=youku&amp;id=(.+)', flashvars)
-		if id:
-			youku_download_by_id(id, title)
-		else:
-			raise NotImplementedError(flashvars)
+		raise NotImplementedError(flashvars)
 
 	json = get_srt_json(id)
 	with open(title + '.json', 'w') as x:
