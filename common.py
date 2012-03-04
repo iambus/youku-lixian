@@ -76,7 +76,7 @@ def url_save(url, filepath, bar):
 			output.write(buffer)
 			if bar:
 				bar.update_received(len(buffer))
-	assert received == file_size == os.path.getsize(filepath)
+	assert received == file_size == os.path.getsize(filepath), '%s == %s == %s' % (received, file_size, os.path.getsize(filepath))
 
 def url_size(url):
 	request = urllib2.Request(url)
