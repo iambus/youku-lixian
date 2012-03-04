@@ -104,6 +104,7 @@ def youku_download(url, output_dir='', stream_type=None):
 		if encoding.lower() == 'ascii':
 			encoding = 'utf-8'
 		title = title.encode(encoding)
+		title = title.replace('?', '-')
 	youku_download_by_id(id2, title, output_dir)
 
 def parse_playlist_videos(html):
