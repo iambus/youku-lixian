@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 __all__ = ['iask_download', 'iask_download_by_id']
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 __all__ = ['ku6_download', 'ku6_download_by_id']
 

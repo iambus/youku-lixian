@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import struct
 from cStringIO import StringIO

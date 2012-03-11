@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 __all__ = ['tudou_download', 'tudou_download_playlist', 'tudou_download_by_id', 'tudou_download_by_iid']
 

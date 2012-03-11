@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 __all__ = ['pptv_download', 'pptv_download_by_id']
 
