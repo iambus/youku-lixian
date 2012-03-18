@@ -1,4 +1,6 @@
 
+__all__ = ['ku6_download', 'ku6_download_by_id']
+
 import json
 import re
 from common import *
@@ -19,6 +21,9 @@ def ku6_download_by_id(id, title=None, output_dir='.', stream_type=None):
 def ku6_download(url):
 	id = r1(r'http://v.ku6.com/special/show_\d+/(.*)\.\.\.html', url)
 	ku6_download_by_id(id)
+
+download = ku6_download
+download_playlist = playlist_not_supported('ku6')
 
 def main():
 	script_main('ku6', ku6_download)

@@ -1,4 +1,6 @@
 
+__all__ = ['iqiyi_download']
+
 import re
 from common import *
 
@@ -28,6 +30,9 @@ def iqiyi_download(url):
 	assert urls[0].endswith('.f4v'), urls[0]
 	urls = map(real_url, urls)
 	download_urls(urls, title, 'flv', total_size=size)
+
+download = iqiyi_download
+download_playlist = playlist_not_supported('iqiyi')
 
 def main():
 	script_main('iqiyi', iqiyi_download)

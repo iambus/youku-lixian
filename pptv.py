@@ -1,4 +1,6 @@
 
+__all__ = ['pptv_download', 'pptv_download_by_id']
+
 import re
 import urllib
 from common import *
@@ -28,6 +30,9 @@ def pptv_download(url):
 	id = r1(r'webcfg\s*=\s*{"id":\s*(\d+)', html)
 	assert id
 	pptv_download_by_id(id)
+
+download = pptv_download
+download_playlist = playlist_not_supported('pptv')
 
 def main():
 	script_main('pptv', pptv_download)

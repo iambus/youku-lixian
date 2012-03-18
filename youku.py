@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+__all__ = ['youku_download', 'youku_download_playlist', 'youku_download_by_id']
+
 import urllib2
 import json
 from random import randint
@@ -156,35 +158,11 @@ def youku_download_playlist(url):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
 		youku_download(id)
 
-def usage():
-	print 'python youku.py [--playlist] url ...'
+download = youku_download
+download_playlist = youku_download_playlist
 
 def main():
-	import sys, getopt
-	try:
-		opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "playlist"])
-	except getopt.GetoptError, err:
-		usage()
-		sys.exit(1)
-	playlist = False
-	for o, a in opts:
-		if o in ("-h", "--help"):
-			usage()
-			sys.exit()
-		elif o in ("--playlist",):
-			playlist = True
-		else:
-			usage()
-			sys.exit(1)
-	if not args:
-		usage()
-		sys.exit(1)
-
-	for url in args:
-		if playlist:
-			youku_download_playlist(url)
-		else:
-			youku_download(url)
+	script_main('youku', youku_download, youku_download_playlist)
 
 if __name__ == '__main__':
 	main()

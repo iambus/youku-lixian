@@ -1,4 +1,5 @@
 
+__all__ = ['acfun_download']
 
 import re
 from common import *
@@ -34,6 +35,9 @@ def acfun_download(url):
 	json = get_srt_json(id)
 	with open(title + '.json', 'w') as x:
 		x.write(json)
+
+download = acfun_download
+download_playlist = playlist_not_supported('acfun')
 
 def main():
 	script_main('acfun', acfun_download)

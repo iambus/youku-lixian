@@ -1,4 +1,6 @@
 
+__all__ = ['iask_download', 'iask_download_by_id']
+
 import re
 from common import *
 
@@ -18,6 +20,9 @@ def iask_download_by_id(id, title=None):
 def iask_download(url):
 	id = r1(r'vid:(\d+),', get_html(url))
 	iask_download_by_id(id)
+
+download = iask_download
+download_playlist = playlist_not_supported('iask')
 
 def main():
 	script_main('iask', iask_download)

@@ -207,27 +207,41 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 		else:
 			print "Can't join %s files" % ext
 
-def script_usage(script_name):
-	print 'python %s.py url ...' % script_name
+def playlist_not_supported(name):
+	def f(_):
+		raise NotImplementedError('Play list is not supported for '+name)
+	return f
 
-def script_main(script_name, download):
+def script_main(script_name, download, download_playlist=None):
+	if download_playlist:
+		help = 'python %s.py [--playlist] url ...' % script_name
+		opts = ['help', 'playlist']
+	else:
+		help = 'python %s.py url ...' % script_name
+		opts = ['help']
 	import sys, getopt
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "h", ["help"])
+		opts, args = getopt.getopt(sys.argv[1:], "h", opts)
 	except getopt.GetoptError, err:
-		script_usage(script_name)
+		print help
 		sys.exit(1)
+	playlist = False
 	for o, a in opts:
 		if o in ("-h", "--help"):
-			script_usage(script_name)
+			print help
 			sys.exit()
+		elif o in ("--playlist",):
+			playlist = True
 		else:
-			script_usage(script_name)
+			print help
 			sys.exit(1)
 	if not args:
-		script_usage(script_name)
+		print help
 		sys.exit(1)
 
 	for url in args:
-		download(url)
+		if playlist:
+			download_playlist(url)
+		else:
+			download(url)
 

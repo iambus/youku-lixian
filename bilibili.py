@@ -1,4 +1,6 @@
 
+__all__ = ['bilibili_download']
+
 import re
 from common import *
 from iask import iask_download_by_id
@@ -65,6 +67,9 @@ def bilibili_download(url):
 	xml = get_srt_xml(id)
 	with open(title + '.xml', 'w') as x:
 		x.write(xml.encode('utf-8'))
+
+download = bilibili_download
+download_playlist = playlist_not_supported('bilibili')
 
 def main():
 	script_main('bilibili', bilibili_download)

@@ -1,4 +1,6 @@
 
+__all__ = ['tudou_download_by_id']
+
 from common import *
 
 def tudou_download_by_iid(iid, title):

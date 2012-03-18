@@ -33,6 +33,12 @@ youku-lixian
 
 https://github.com/iambus/youku-lixian/downloads
 
+统一下载
+--------
+
+	python video_lixian.py urls...
+	python video_lixian.py --playlist url
+
 优酷下载
 --------
 
