@@ -4,6 +4,16 @@ import os.path
 import sys
 import re
 
+default_encoding = sys.getfilesystemencoding()
+if default_encoding.lower() == 'ascii':
+	default_encoding = 'utf-8'
+
+def to_native_string(s):
+	if type(s) == unicode:
+		return s.encode(default_encoding)
+	else:
+		return s
+
 def r1(pattern, text):
 	m = re.search(pattern, text)
 	if m:
@@ -173,6 +183,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
 		except:
 			pass
 	title = escape_file_path(title)
+	title = to_native_string(title)
 	filename = '%s.%s' % (title, ext)
 	filepath = os.path.join(output_dir, filename)
 	if total_size:
