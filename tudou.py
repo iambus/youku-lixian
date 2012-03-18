@@ -1,5 +1,5 @@
 
-__all__ = ['tudou_download_by_id']
+__all__ = ['tudou_download', 'tudou_download_playlist', 'tudou_download_by_id', 'tudou_download_by_iid']
 
 from common import *
 
@@ -22,4 +22,45 @@ def tudou_download_by_id(id, title):
 	iid = r1(r'iid\s*=\s*(\S+)', html)
 	tudou_download_by_iid(iid, title)
 
+def tudou_download(url):
+	html = get_decoded_html(url)
+	iid = r1(r'iid\s*[:=]\s*(\d+)', html)
+	assert iid
+	title = r1(r'title\s*[:=]\s*"([^"]+)"\n', html)
+	assert title
+	title = unescape_html(title)
+	tudou_download_by_iid(iid, title)
+
+def parse_playlist(url):
+	#if r1('http://www.tudou.com/playlist/p/a(\d+)\.html', url):
+	#	html = get_html(url)
+	#	print re.search(r'<script>var.*?</script>', html, flags=re.S).group()
+	#else:
+	#	raise NotImplementedError(url)
+	raise NotImplementedError()
+
+def parse_playlist(url):
+	aid = r1('http://www.tudou.com/playlist/p/a(\d+)(?:i\d+)?\.html', url)
+	if not aid:
+		aid = r1(r"aid\s*[:=]\s*'(\d+)'", get_html(url))
+	assert aid
+	import json
+	#url = 'http://www.tudou.com/playlist/service/getZyAlbumItems.html?aid='+aid
+	url = 'http://www.tudou.com/playlist/service/getAlbumItems.html?aid='+aid
+	return [(x['title'], str(x['itemId'])) for x in json.loads(get_html(url))['message']]
+
+def tudou_download_playlist(url):
+	videos = parse_playlist(url)
+	for i, (title, id) in enumerate(videos):
+		print 'Downloading %s of %s videos...' % (i + 1, len(videos))
+		tudou_download_by_iid(id, title)
+
+download = tudou_download
+download_playlist = tudou_download_playlist
+
+def main():
+	script_main('tudou', tudou_download, tudou_download_playlist)
+
+if __name__ == '__main__':
+	main()
 
