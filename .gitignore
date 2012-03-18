@@ -1,3 +1,6 @@
 *.pyc
 *.flv
 *.mp4
+*.swp
+*.xml
+*.json
