@@ -61,7 +61,11 @@ def read_amf_boolean(stream):
 	return bool(b)
 
 def read_amf_string(stream):
-	n = struct.unpack('>H', stream.read(2))[0]
+	xx = stream.read(2)
+	if xx == '':
+		# dirty fix for the invalid Qiyi flv
+		return None
+	n = struct.unpack('>H', xx)[0]
 	s = stream.read(n)
 	assert len(s) == n
 	return s.decode('utf-8')
@@ -82,6 +86,9 @@ def read_amf_mixed_array(stream):
 	mixed_results = ECMAObject(max_number)
 	while True:
 		k = read_amf_string(stream)
+		if k is None:
+			# dirty fix for the invalid Qiyi flv
+			break
 		if not k:
 			assert read_byte(stream) == AMF_TYPE_END_OF_OBJECT
 			break
