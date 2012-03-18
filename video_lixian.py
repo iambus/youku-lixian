@@ -7,6 +7,7 @@ import ku6
 import pptv
 import iqiyi
 import tudou
+import sohu
 
 from common import *
 import re
@@ -26,6 +27,7 @@ def url_to_module(url):
 			'pptv':pptv,
 			'iqiyi':iqiyi,
 			'tudou':tudou,
+			'sohu':sohu,
 	}
 	if k in downloads:
 		return downloads[k]

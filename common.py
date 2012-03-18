@@ -52,8 +52,12 @@ def get_decoded_html(url):
 	else:
 		return data
 
-def url_save(url, filepath, bar):
-	response = urllib2.urlopen(url)
+def url_save(url, filepath, bar, refer=None):
+	headers = {}
+	if refer:
+		headers['Referer'] = refer
+	request = urllib2.Request(url, headers=headers)
+	response = urllib2.urlopen(request)
 	file_size = int(response.headers['content-length'])
 	assert file_size
 	if os.path.exists(filepath):
@@ -160,7 +164,7 @@ def escape_file_path(path):
 	path = path.replace('\\', '-')
 	return path
 
-def download_urls(urls, title, ext, total_size, output_dir='.'):
+def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
 	assert urls
 	assert ext in ('flv', 'mp4')
 	if not total_size:
@@ -181,7 +185,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 	if len(urls) == 1:
 		url = urls[0]
 		print 'Downloading %s ...' % filename
-		url_save(url, filepath, bar)
+		url_save(url, filepath, bar, refer=refer)
 		bar.done()
 	else:
 		flvs = []
@@ -192,7 +196,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.'):
 			flvs.append(filepath)
 			#print 'Downloading %s [%s/%s]...' % (filename, i+1, len(urls))
 			bar.update_piece(i+1)
-			url_save(url, filepath, bar)
+			url_save(url, filepath, bar, refer=refer)
 		bar.done()
 		if ext == 'flv':
 			from flv_join import concat_flvs
