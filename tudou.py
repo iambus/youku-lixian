@@ -41,13 +41,21 @@ def parse_playlist(url):
 
 def parse_playlist(url):
 	aid = r1('http://www.tudou.com/playlist/p/a(\d+)(?:i\d+)?\.html', url)
+	html = get_decoded_html(url)
 	if not aid:
-		aid = r1(r"aid\s*[:=]\s*'(\d+)'", get_html(url))
+		aid = r1(r"aid\s*[:=]\s*'(\d+)'", html)
+	if re.match(r'http://www.tudou.com/albumcover/', url):
+		atitle = r1(r"title\s*:\s*'([^']+)'", html)
+	elif re.match(r'http://www.tudou.com/playlist/p/', url):
+		atitle = r1(r'atitle\s*=\s*"([^"]+)"', html)
+	else:
+		raise NotImplementedError(url)
 	assert aid
+	assert atitle
 	import json
 	#url = 'http://www.tudou.com/playlist/service/getZyAlbumItems.html?aid='+aid
 	url = 'http://www.tudou.com/playlist/service/getAlbumItems.html?aid='+aid
-	return [(x['title'], str(x['itemId'])) for x in json.loads(get_html(url))['message']]
+	return [(atitle + '-' + x['title'], str(x['itemId'])) for x in json.loads(get_html(url))['message']]
 
 def tudou_download_playlist(url):
 	videos = parse_playlist(url)
