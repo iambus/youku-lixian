@@ -5,7 +5,7 @@ __all__ = ['tudou_download', 'tudou_download_playlist', 'tudou_download_by_id', 
 from common import *
 
 def tudou_download_by_iid(iid, title):
-	xml = get_html('http://v2.tudou.com/v?it=' + iid)
+	xml = get_html('http://v2.tudou.com/v?it=' + iid + '&st=1,2,3,4,99')
 
 	from xml.dom.minidom import parseString
 	doc = parseString(xml)
