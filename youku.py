@@ -134,20 +134,20 @@ def parse_playlist(url):
 
 def parse_vplaylist(url):
 	id = r1_of([r'^http://www.youku.com/playlist_show/id_(\d+)(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html',
-	            r'^http://v.youku.com/v_playlist/f(\d+)o1p\d+.html',
+	            r'^http://v.youku.com/v_playlist/f(\d+)o[01]p\d+.html',
 				r'^http://u.youku.com/user_playlist/pid_(\d+)_id_[\w=]+(?:_page_\d+)?.html'],
 	           url)
 	assert id, 'not valid vplaylist url: '+url
 	url = 'http://www.youku.com/playlist_show/id_%s.html' % id
 	n = int(re.search(r'<span class="num">(\d+)</span>', get_html(url)).group(1))
-	return ['http://v.youku.com/v_playlist/f%so1p%s.html' % (id, i) for i in range(n)]
+	return ['http://v.youku.com/v_playlist/f%so0p%s.html' % (id, i) for i in range(n)]
 
 def youku_download_playlist(url):
 	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
 		url = find_video_id_from_show_page(url)
 	if re.match(r'http://www.youku.com/playlist_show/id_\d+(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html', url):
 		ids = parse_vplaylist(url)
-	elif re.match(r'http://v.youku.com/v_playlist/f\d+o1p\d+.html', url):
+	elif re.match(r'http://v.youku.com/v_playlist/f\d+o[01]p\d+.html', url):
 		ids = parse_vplaylist(url)
 	elif re.match(r'http://u.youku.com/user_playlist/pid_(\d+)_id_[\w=]+(?:_page_\d+)?.html', url):
 		ids = parse_vplaylist(url)
