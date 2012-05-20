@@ -4,7 +4,7 @@ youku-lixian
 
 简介
 ----
-从优酷网站上下载flv或mp4格式的视频文件（包括分段视频的拼接）。友情支持bilibili，acfun，新浪，酷6，pptv，爱奇艺，土豆，搜狐。
+从优酷网站上下载flv或mp4格式的视频文件（包括分段视频的拼接）。友情支持bilibili，acfun，新浪，酷6，pptv，爱奇艺，土豆，搜狐，56。
 除Python标准库外无第三方依赖。测试环境：Python 2.7。
 
 	python youku.py urls...
@@ -39,51 +39,13 @@ https://github.com/iambus/youku-lixian/downloads
 	python video_lixian.py urls...
 	python video_lixian.py --playlist url
 
-优酷下载
+单独下载
 --------
+
+也可以直接使用对应的脚本进行下载。比如：
 
 	python youku.py urls...
 	python youku.py --playlist url
-
-bilibili下载
-------------
-
-	python bilibili.py urls...
-
-acfun下载
----------
-
-	python acfun.py urls...
-
-新浪下载
---------
-
-	python iask.py urls...
-
-酷6下载
--------
-
-	python ku6.py urls...
-
-pptv下载
---------
-
-	python pptv.py urls...
-
-爱奇艺下载
-----------
-
-	python iqiyi.py urls...
-
-土豆下载
---------
-
-	python tudou.py urls...
-
-搜狐下载
---------
-
-	python sohu.py urls...
 
 其他下载
 --------

@@ -172,6 +172,7 @@ class DummyProgressBar:
 def escape_file_path(path):
 	path = path.replace('/', '-')
 	path = path.replace('\\', '-')
+	path = path.replace('*', '-')
 	return path
 
 def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):

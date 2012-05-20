@@ -9,6 +9,7 @@ import pptv
 import iqiyi
 import tudou
 import sohu
+import w56
 
 from common import *
 import re
@@ -29,6 +30,7 @@ def url_to_module(url):
 			'iqiyi':iqiyi,
 			'tudou':tudou,
 			'sohu':sohu,
+			'56':w56,
 	}
 	if k in downloads:
 		return downloads[k]
