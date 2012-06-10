@@ -17,6 +17,8 @@ import re
 def url_to_module(url):
 	site = r1(r'http://([^/]+)/', url)
 	assert site, 'invalid url: ' + url
+	if site.endswith('.com.cn'):
+		site = site[:-3]
 	domain = r1(r'(\.[^.]+\.[^.]+)$', site)
 	assert domain, 'not supported url: ' + url
 	k = r1(r'([^.]+)', domain)
@@ -25,6 +27,7 @@ def url_to_module(url):
 			'bilibili':bilibili,
 			'acfun':acfun,
 			'iask':iask,
+			'sina':iask,
 			'ku6':ku6,
 			'pptv':pptv,
 			'iqiyi':iqiyi,
