@@ -27,7 +27,9 @@ def r1_of(patterns, text):
 
 def unescape_html(html):
 	import xml.sax.saxutils
-	return xml.sax.saxutils.unescape(html)
+	html = xml.sax.saxutils.unescape(html)
+	html = re.sub(r'&#(\d+);', lambda x: unichr(int(x.group(1))), html)
+	return html
 
 def ungzip(s):
 	from StringIO import StringIO
