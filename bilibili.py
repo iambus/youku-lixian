@@ -49,7 +49,7 @@ def bilibili_download(url):
 	assert re.match(r'http://www.bilibili.tv/video/av(\d+)', url)
 	html = get_html(url)
 
-	title = r1(r'<h2 id="titles">([^<>]+)<a name="titles">', html).decode('utf-8')
+	title = r1(r'<h2>([^<>]+)</h2>', html).decode('utf-8')
 	title = unescape_html(title)
 	title = escape_file_path(title)
 
