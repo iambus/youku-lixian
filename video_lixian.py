@@ -10,6 +10,7 @@ import iqiyi
 import tudou
 import sohu
 import w56
+import cntv
 
 from common import *
 import re
@@ -34,6 +35,7 @@ def url_to_module(url):
 			'tudou':tudou,
 			'sohu':sohu,
 			'56':w56,
+			'cntv':cntv,
 	}
 	if k in downloads:
 		return downloads[k]
