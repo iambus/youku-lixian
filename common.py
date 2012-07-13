@@ -101,6 +101,10 @@ def url_size(url):
 	size = int(response.headers['content-length'])
 	return size
 
+def url_size(url):
+	size = int(urllib2.urlopen(url).headers['content-length'])
+	return size
+
 def urls_size(urls):
 	return sum(map(url_size, urls))
 
@@ -184,6 +188,9 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
 		try:
 			total_size = urls_size(urls)
 		except:
+			import traceback
+			import sys
+			traceback.print_exc(file=sys.stdout)
 			pass
 	title = escape_file_path(title)
 	title = to_native_string(title)
