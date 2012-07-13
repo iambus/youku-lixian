@@ -7,6 +7,7 @@ from common import *
 from iask import iask_download_by_id
 from youku import youku_download_by_id
 from tudou import tudou_download_by_iid
+from qq import qq_download_by_id
 import json
 
 def get_srt_json(id):
@@ -16,16 +17,19 @@ def get_srt_json(id):
 def acfun_download_by_id(id, title):
 	info = json.loads(get_html('http://www.acfun.tv/api/getVideoByID.aspx?vid=' + id))
 	t = info['vtype']
+	vid = info['vid']
 	if t == 'sina':
-		iask_download_by_id(id, title)
+		iask_download_by_id(vid, title)
 	elif t == 'youku':
-		youku_download_by_id(id, title)
+		youku_download_by_id(vid, title)
 	elif t == 'tudou':
-		tudou_download_by_iid(id, title)
+		tudou_download_by_iid(vid, title)
+	elif t == 'qq':
+		qq_download_by_id(vid, title)
 	else:
 		raise NotImplementedError(t)
 
-	srt = get_srt_json(info['vid'])
+	srt = get_srt_json(vid)
 	with open(title + '.json', 'w') as x:
 		x.write(srt)
 
