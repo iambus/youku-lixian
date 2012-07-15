@@ -52,8 +52,11 @@ def get_response(url):
 	response.data = data
 	return response
 
-def get_html(url):
-	return get_response(url).data
+def get_html(url, encoding=None):
+	content = get_response(url).data
+	if encoding:
+		content = content.decode(encoding)
+	return content
 
 def get_decoded_html(url):
 	response = get_response(url)
