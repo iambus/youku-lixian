@@ -6,7 +6,7 @@ from common import *
 
 def real_url(host, prot, file, new):
 	url = 'http://%s/?prot=%s&file=%s&new=%s' % (host, prot, file, new)
-	start, _, host, key, _ = get_html(url).split('|')
+	start, _, host, key, _, _ = get_html(url).split('|')
 	return '%s%s?key=%s' % (start[:-1], new, key)
 
 def sohu_download(url):
