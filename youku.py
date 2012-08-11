@@ -40,6 +40,7 @@ def parse_page(url):
 	else:
 		title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
 	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
+	title = title.replace(u'\u2014\u5728\u7ebf\u64ad\u653e\u2014\u4f18\u9177\u7f51\uff0c\u89c6\u9891\u9ad8\u6e05\u5728\u7ebf\u89c2\u770b', '').strip()
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
 		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
 	title = unescape_html(title)
