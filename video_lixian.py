@@ -49,9 +49,9 @@ def any_download(url):
 	m = url_to_module(url)
 	m.download(url)
 
-def any_download_playlist(url):
+def any_download_playlist(url, create_dir=False):
 	m = url_to_module(url)
-	m.download_playlist(url)
+	m.download_playlist(url, create_dir=create_dir)
 
 def main():
 	script_main('video_lixian', any_download, any_download_playlist)

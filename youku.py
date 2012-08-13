@@ -30,20 +30,39 @@ def youku_url(url):
 		return url
 	raise Exception('Invalid youku URL: '+url)
 
-def parse_page(url):
-	url = youku_url(url)
-	page = get_html(url)
-	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
+def parse_video_title(url, page):
 	if re.search(r'v_playlist', url):
 		# if we are playing a viedo from play list, the meta title might be incorrect
-		title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
+		title = r1_of([r'<div class="show_title" title="([^"]+)"', r'<title>([^<>]*)</title>'], page).decode('utf-8')
 	else:
-		title = re.search(r'<meta name="title" content="([^"]*)">', page).group(1).decode('utf-8')
+		title = r1_of([r'<div class="show_title" title="([^"]+)"', r'<meta name="title" content="([^"]*)"'], page).decode('utf-8')
+	assert title
 	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
 	title = title.replace(u'\u2014\u5728\u7ebf\u64ad\u653e\u2014\u4f18\u9177\u7f51\uff0c\u89c6\u9891\u9ad8\u6e05\u5728\u7ebf\u89c2\u770b', '').strip()
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
 		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
 	title = unescape_html(title)
+	return title
+
+def parse_playlist_title(url, page):
+	if re.search(r'v_playlist', url):
+		# if we are playing a viedo from play list, the meta title might be incorrect
+		title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
+	else:
+		title = re.search(r'<meta name="title" content="([^"]*)"', page).group(1).decode('utf-8')
+	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
+	title = title.replace(u'\u2014\u5728\u7ebf\u64ad\u653e\u2014\u4f18\u9177\u7f51\uff0c\u89c6\u9891\u9ad8\u6e05\u5728\u7ebf\u89c2\u770b', '').strip()
+	title = title.replace(u' - \u4e13\u8f91 - \u4f18\u9177\u89c6\u9891', '').strip()
+	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
+		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
+	title = unescape_html(title)
+	return title
+
+def parse_page(url):
+	url = youku_url(url)
+	page = get_html(url)
+	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
+	title = parse_video_title(url, page)
 	subtitle = re.search(r'<span class="subtitle" id="subtitle">([^<>]*)</span>', page)
 	if subtitle:
 		subtitle = subtitle.group(1).decode('utf-8').strip()
@@ -104,10 +123,7 @@ def youku_download(url, output_dir='', stream_type=None):
 	if subtitle:
 		title += '-' + subtitle
 	if type(title) == unicode:
-		encoding = sys.getfilesystemencoding()
-		if encoding.lower() == 'ascii':
-			encoding = 'utf-8'
-		title = title.encode(encoding)
+		title = title.encode(default_encoding)
 		title = title.replace('?', '-')
 	youku_download_by_id(id2, title, output_dir)
 
@@ -144,7 +160,7 @@ def parse_vplaylist(url):
 	n = int(re.search(r'<span class="num">(\d+)</span>', get_html(url)).group(1))
 	return ['http://v.youku.com/v_playlist/f%so0p%s.html' % (id, i) for i in range(n)]
 
-def youku_download_playlist(url):
+def youku_download_playlist(url, create_dir=False):
 	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
 		url = find_video_id_from_show_page(url)
 	if re.match(r'http://www.youku.com/playlist_show/id_\d+(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html', url):
@@ -156,9 +172,18 @@ def youku_download_playlist(url):
 	else:
 		assert re.match(r'http://v.youku.com/v_show/id_([\w=]+).html', url), 'URL not supported as playlist'
 		ids = parse_playlist(url)
+	output_dir = '.'
+	if create_dir:
+		title = parse_playlist_title(url, get_html(url))
+		title = title.encode(default_encoding)
+		title = title.replace('?', '-')
+		import os
+		if not os.path.exists(title):
+			os.makedirs(title)
+		output_dir = title
 	for i, id in enumerate(ids):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
-		youku_download(id)
+		youku_download(id, output_dir=output_dir)
 
 download = youku_download
 download_playlist = youku_download_playlist

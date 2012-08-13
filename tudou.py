@@ -58,7 +58,9 @@ def parse_playlist(url):
 	url = 'http://www.tudou.com/playlist/service/getAlbumItems.html?aid='+aid
 	return [(atitle + '-' + x['title'], str(x['itemId'])) for x in json.loads(get_html(url))['message']]
 
-def tudou_download_playlist(url):
+def tudou_download_playlist(url, create_dir=False):
+	if create_dir:
+		raise NotImplementedError('please report a bug so I can implement this')
 	videos = parse_playlist(url)
 	for i, (title, id) in enumerate(videos):
 		print 'Downloading %s of %s videos...' % (i + 1, len(videos))
