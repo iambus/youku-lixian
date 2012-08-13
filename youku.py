@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# encoding: utf-8
 
 __all__ = ['youku_download', 'youku_download_playlist', 'youku_download_by_id']
 
@@ -30,6 +31,12 @@ def youku_url(url):
 		return url
 	raise Exception('Invalid youku URL: '+url)
 
+def trim_title(title):
+	title = title.replace(u' - 视频 - 优酷视频 - 在线观看', '')
+	title = title.replace(u' - 专辑 - 优酷视频', '')
+	title = re.sub(ur'—([^—]+)—优酷网，视频高清在线观看', '', title)
+	return title
+
 def parse_video_title(url, page):
 	if re.search(r'v_playlist', url):
 		# if we are playing a viedo from play list, the meta title might be incorrect
@@ -37,8 +44,7 @@ def parse_video_title(url, page):
 	else:
 		title = r1_of([r'<div class="show_title" title="([^"]+)"', r'<meta name="title" content="([^"]*)"'], page).decode('utf-8')
 	assert title
-	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
-	title = title.replace(u'\u2014\u5728\u7ebf\u64ad\u653e\u2014\u4f18\u9177\u7f51\uff0c\u89c6\u9891\u9ad8\u6e05\u5728\u7ebf\u89c2\u770b', '').strip()
+	title = trim_title(title)
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
 		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
 	title = unescape_html(title)
@@ -50,9 +56,7 @@ def parse_playlist_title(url, page):
 		title = re.search(r'<title>([^<>]*)</title>', page).group(1).decode('utf-8')
 	else:
 		title = re.search(r'<meta name="title" content="([^"]*)"', page).group(1).decode('utf-8')
-	title = title.replace(u' - \u89c6\u9891 - \u4f18\u9177\u89c6\u9891 - \u5728\u7ebf\u89c2\u770b', '').strip()
-	title = title.replace(u'\u2014\u5728\u7ebf\u64ad\u653e\u2014\u4f18\u9177\u7f51\uff0c\u89c6\u9891\u9ad8\u6e05\u5728\u7ebf\u89c2\u770b', '').strip()
-	title = title.replace(u' - \u4e13\u8f91 - \u4f18\u9177\u89c6\u9891', '').strip()
+	title = trim_title(title)
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
 		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
 	title = unescape_html(title)
