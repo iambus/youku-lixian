@@ -10,7 +10,7 @@ def real_url(url):
 	import json
 	return json.loads(get_html(url[:-3]+'hml?v='+str(int(time.time()) + 1921658928)))['l'] # XXX: what is 1921658928?
 
-def iqiyi_download(url):
+def iqiyi_download(url, merge=True):
 	html = get_html(url)
 	#title = r1(r'title\s*:\s*"([^"]+)"', html)
 	#title = unescape_html(title).decode('utf-8')
@@ -30,7 +30,7 @@ def iqiyi_download(url):
 	urls = [n.firstChild.nodeValue for n in doc.getElementsByTagName('file')]
 	assert urls[0].endswith('.f4v'), urls[0]
 	urls = map(real_url, urls)
-	download_urls(urls, title, 'flv', total_size=size)
+	download_urls(urls, title, 'flv', total_size=size, merge=merge)
 
 download = iqiyi_download
 download_playlist = playlist_not_supported('iqiyi')

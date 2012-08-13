@@ -9,7 +9,7 @@ def real_url(host, prot, file, new):
 	start, _, host, key, _, _ = get_html(url).split('|')
 	return '%s%s?key=%s' % (start[:-1], new, key)
 
-def sohu_download(url):
+def sohu_download(url, merge=True):
 	vid = r1('vid="(\d+)"', get_html(url))
 	assert vid
 	import json
@@ -24,7 +24,7 @@ def sohu_download(url):
 	for file, new in zip(data['clipsURL'], data['su']):
 		urls.append(real_url(host, prot, file, new))
 	assert data['clipsURL'][0].endswith('.mp4')
-	download_urls(urls, title, 'mp4', total_size=size, refer=url)
+	download_urls(urls, title, 'mp4', total_size=size, refer=url, merge=merge)
 
 download = sohu_download
 download_playlist = playlist_not_supported('sohu')

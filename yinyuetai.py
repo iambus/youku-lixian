@@ -18,7 +18,7 @@ def url_info(url):
 
 	return type, size
 
-def yinyuetai_download_by_id(id, title=None):
+def yinyuetai_download_by_id(id, title=None, merge=True):
 	assert title
 	# XXX: what's the format? it looks not amf
 	amf = get_html('http://www.yinyuetai.com/insite/get-video-info?flex=true&videoId=' + id)
@@ -28,9 +28,9 @@ def yinyuetai_download_by_id(id, title=None):
 	url = r1(r'(http://\w+\.yinyuetai\.com/uploads/videos/common/\w+\.(?:flv|mp4)\?(?:t=[a-f0-9]{16}|v=\d{12}))', amf)
 	assert url
 	ext, size = url_info(url)
-	download_urls([url], title, ext, total_size=size)
+	download_urls([url], title, ext, total_size=size, merge=merge)
 
-def yinyuetai_download(url):
+def yinyuetai_download(url, merge=True):
 	id = r1(r'http://www.yinyuetai.com/video/(\d+)$', url)
 	assert id
 	html = get_html(url, 'utf-8')
@@ -39,7 +39,7 @@ def yinyuetai_download(url):
 	assert title
 	title = urllib.unquote(title)
 	title = escape_file_path(title)
-	yinyuetai_download_by_id(id, title)
+	yinyuetai_download_by_id(id, title, merge=merge)
 
 download = yinyuetai_download
 download_playlist = playlist_not_supported('yinyuetai')

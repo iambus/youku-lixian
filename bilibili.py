@@ -45,7 +45,7 @@ def parse_srt_xml(xml):
 		p = parse_srt_p(x)
 	raise NotImplementedError()
 
-def bilibili_download(url):
+def bilibili_download(url, merge=True):
 	assert re.match(r'http://(www.bilibili.tv|bilibili.kankanews.com)/video/av(\d+)', url)
 	html = get_html(url)
 
@@ -57,11 +57,11 @@ def bilibili_download(url):
 	assert flashvars
 	t, id = flashvars.split('=', 1)
 	if t == 'vid':
-		iask_download_by_id(id, title)
+		iask_download_by_id(id, title, merge=merge)
 	elif t == 'ykid':
-		youku_download_by_id(id, title)
+		youku_download_by_id(id, title, merge=merge)
 	elif t == 'uid':
-		tudou_download_by_id(id, title)
+		tudou_download_by_id(id, title, merge=merge)
 	else:
 		raise NotImplementedError(flashvars)
 

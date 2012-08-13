@@ -185,7 +185,7 @@ def escape_file_path(path):
 	path = path.replace('?', '-')
 	return path
 
-def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
+def download_urls(urls, title, ext, total_size, output_dir='.', refer=None, merge=True):
 	assert urls
 	assert ext in ('flv', 'mp4')
 	if not total_size:
@@ -223,6 +223,8 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
 			bar.update_piece(i+1)
 			url_save(url, filepath, bar, refer=refer)
 		bar.done()
+		if not merge:
+			return
 		if ext == 'flv':
 			from flv_join import concat_flvs
 			concat_flvs(flvs, os.path.join(output_dir, title+'.flv'))
@@ -243,13 +245,13 @@ def playlist_not_supported(name):
 
 def script_main(script_name, download, download_playlist=None):
 	if download_playlist:
-		help = 'python %s.py [--playlist] [-c|--create-dir] url ...' % script_name
+		help = 'python %s.py [--playlist] [-c|--create-dir] [--no-merge] url ...' % script_name
 		short_opts = 'hc'
-		opts = ['help', 'playlist', 'create-dir']
+		opts = ['help', 'playlist', 'create-dir', 'no-merge']
 	else:
-		help = 'python %s.py url ...' % script_name
+		help = 'python [--no-merge] %s.py url ...' % script_name
 		short_opts = 'h'
-		opts = ['help']
+		opts = ['help', 'no-merge']
 	import sys, getopt
 	try:
 		opts, args = getopt.getopt(sys.argv[1:], short_opts, opts)
@@ -258,14 +260,17 @@ def script_main(script_name, download, download_playlist=None):
 		sys.exit(1)
 	playlist = False
 	create_dir = False
+	merge = True
 	for o, a in opts:
 		if o in ('-h', '--help'):
 			print help
 			sys.exit()
-		elif o in ('--playlist'):
+		elif o in ('--playlist',):
 			playlist = True
 		elif o in ('-c', '--create-dir'):
 			create_dir = True
+		elif o in ('--no-merge'):
+			merge = False
 		else:
 			print help
 			sys.exit(1)
@@ -275,7 +280,7 @@ def script_main(script_name, download, download_playlist=None):
 
 	for url in args:
 		if playlist:
-			download_playlist(url, create_dir=create_dir)
+			download_playlist(url, create_dir=create_dir, merge=merge)
 		else:
-			download(url)
+			download(url, merge=merge)
 

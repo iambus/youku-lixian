@@ -7,7 +7,7 @@ import urllib
 from common import *
 import hashlib
 
-def pptv_download_by_id(id):
+def pptv_download_by_id(id, merge=True):
 	xml = get_html('http://web-play.pptv.com/webplay3-151-%s.xml' % id)
 	xml = xml.decode('utf-8')
 	host = r1(r'<sh>([^<>]+)</sh>', xml)
@@ -23,14 +23,14 @@ def pptv_download_by_id(id):
 	urls = ['http://pptv.vod.lxdns.com/%s/%s?key=%s' % (i, rid, key) for i in numbers]
 	total_size = sum(map(int, fs))
 	assert rid.endswith('.mp4')
-	download_urls(urls, title, 'mp4', total_size=total_size)
+	download_urls(urls, title, 'mp4', total_size=total_size, merge=merge)
 
-def pptv_download(url):
+def pptv_download(url, merge=True):
 	assert re.match(r'http://v.pptv.com/show/(\w+)\.html$', url)
 	html = get_html(url)
 	id = r1(r'webcfg\s*=\s*{"id":\s*(\d+)', html)
 	assert id
-	pptv_download_by_id(id)
+	pptv_download_by_id(id, merge=merge)
 
 download = pptv_download
 download_playlist = playlist_not_supported('pptv')

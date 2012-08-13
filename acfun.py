@@ -14,18 +14,18 @@ def get_srt_json(id):
 	url = 'http://comment.acfun.tv/%s.json' % id
 	return get_html(url)
 
-def acfun_download_by_id(id, title):
+def acfun_download_by_id(id, title, merge=True):
 	info = json.loads(get_html('http://www.acfun.tv/api/getVideoByID.aspx?vid=' + id))
 	t = info['vtype']
 	vid = info['vid']
 	if t == 'sina':
-		iask_download_by_id(vid, title)
+		iask_download_by_id(vid, title, merge=merge)
 	elif t == 'youku':
-		youku_download_by_id(vid, title)
+		youku_download_by_id(vid, title, merge=merge)
 	elif t == 'tudou':
-		tudou_download_by_iid(vid, title)
+		tudou_download_by_iid(vid, title, merge=merge)
 	elif t == 'qq':
-		qq_download_by_id(vid, title)
+		qq_download_by_id(vid, title, merge=merge)
 	else:
 		raise NotImplementedError(t)
 
@@ -33,7 +33,7 @@ def acfun_download_by_id(id, title):
 	with open(title + '.json', 'w') as x:
 		x.write(srt)
 
-def acfun_download(url):
+def acfun_download(url, merge=True):
 	assert re.match(r'http://www.acfun.tv/v/ac(\d+)', url)
 	html = get_html(url).decode('utf-8')
 
@@ -44,7 +44,7 @@ def acfun_download(url):
 	title = title.replace(' - AcFun.tv', '')
 
 	id = r1(r"flashvars = {'id':'(\d+)'", html)
-	acfun_download_by_id(id, title)
+	acfun_download_by_id(id, title, merge=merge)
 
 
 download = acfun_download

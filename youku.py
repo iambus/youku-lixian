@@ -116,20 +116,20 @@ def find_video(info, stream_type=None):
 def file_type_of_url(url):
 	return str(re.search(r'/st/([^/]+)/', url).group(1))
 
-def youku_download_by_id(id2, title, output_dir='.', stream_type=None):
+def youku_download_by_id(id2, title, output_dir='.', stream_type=None, merge=True):
 	info = get_info(id2)
 	urls, sizes = zip(*find_video(info, stream_type))
 	total_size = sum(sizes)
-	download_urls(urls, title, file_type_of_url(urls[0]), total_size, output_dir)
+	download_urls(urls, title, file_type_of_url(urls[0]), total_size, output_dir, merge=merge)
 
-def youku_download(url, output_dir='', stream_type=None):
+def youku_download(url, output_dir='', stream_type=None, merge=True):
 	id2, title, subtitle = parse_page(url)
 	if subtitle:
 		title += '-' + subtitle
 	if type(title) == unicode:
 		title = title.encode(default_encoding)
 		title = title.replace('?', '-')
-	youku_download_by_id(id2, title, output_dir)
+	youku_download_by_id(id2, title, output_dir, merge=merge)
 
 def parse_playlist_videos(html):
 	return re.findall(r'id="A_(\w+)"', html)
@@ -164,7 +164,7 @@ def parse_vplaylist(url):
 	n = int(re.search(r'<span class="num">(\d+)</span>', get_html(url)).group(1))
 	return ['http://v.youku.com/v_playlist/f%so0p%s.html' % (id, i) for i in range(n)]
 
-def youku_download_playlist(url, create_dir=False):
+def youku_download_playlist(url, create_dir=False, merge=True):
 	if re.match(r'http://www.youku.com/show_page/id_\w+.html', url):
 		url = find_video_id_from_show_page(url)
 	if re.match(r'http://www.youku.com/playlist_show/id_\d+(?:_ascending_\d_mode_pic(?:_page_\d+)?)?.html', url):
@@ -187,7 +187,7 @@ def youku_download_playlist(url, create_dir=False):
 		output_dir = title
 	for i, id in enumerate(ids):
 		print 'Downloading %s of %s videos...' % (i + 1, len(ids))
-		youku_download(id, output_dir=output_dir)
+		youku_download(id, output_dir=output_dir, merge=merge)
 
 download = youku_download
 download_playlist = youku_download_playlist

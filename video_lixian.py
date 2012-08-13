@@ -45,13 +45,13 @@ def url_to_module(url):
 	else:
 		raise NotImplementedError(url)
 
-def any_download(url):
+def any_download(url, merge=True):
 	m = url_to_module(url)
-	m.download(url)
+	m.download(url, merge=merge)
 
-def any_download_playlist(url, create_dir=False):
+def any_download_playlist(url, create_dir=False, merge=True):
 	m = url_to_module(url)
-	m.download_playlist(url, create_dir=create_dir)
+	m.download_playlist(url, create_dir=create_dir, merge=merge)
 
 def main():
 	script_main('video_lixian', any_download, any_download_playlist)

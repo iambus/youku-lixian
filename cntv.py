@@ -6,7 +6,7 @@ from common import *
 import json
 import re
 
-def cntv_download_by_id(id, title=None, output_dir='.', stream_type=None):
+def cntv_download_by_id(id, title=None, output_dir='.', stream_type=None, merge=True):
 	assert id
 	info = json.loads(get_html('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid='+id).decode('utf-8'))
 	title = title or info['title']
@@ -17,16 +17,16 @@ def cntv_download_by_id(id, title=None, output_dir='.', stream_type=None):
 	urls = [x['url'] for x in chapters]
 	ext = r1(r'\.([^.]+)$', urls[0])
 	assert ext in ('flv', 'mp4')
-	download_urls(urls, title, str(ext), total_size=None)
+	download_urls(urls, title, str(ext), total_size=None, merge=merge)
 
-def cntv_download(url):
+def cntv_download(url, merge=True):
 	if re.match(r'http://\w+\.cntv\.cn/(\w+/\w+/classpage/video/)?\d+/\d+\.shtml', url):
 		id = r1(r'<!--repaste.video.code.begin-->(\w+)<!--repaste.video.code.end-->', get_html(url))
 	elif re.match(r'http://xiyou.cntv.cn/v-[\w-]+\.html', url):
 		id = r1(r'http://xiyou.cntv.cn/v-([\w-]+)\.html', url)
 	else:
 		raise NotImplementedError(url)
-	cntv_download_by_id(id)
+	cntv_download_by_id(id, merge=merge)
 
 download = cntv_download
 download_playlist = playlist_not_supported('cntv')
