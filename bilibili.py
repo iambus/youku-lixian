@@ -46,7 +46,7 @@ def parse_srt_xml(xml):
 	raise NotImplementedError()
 
 def bilibili_download(url):
-	assert re.match(r'http://www.bilibili.tv/video/av(\d+)', url)
+	assert re.match(r'http://(www.bilibili.tv|bilibili.kankanews.com)/video/av(\d+)', url)
 	html = get_html(url)
 
 	title = r1(r'<h2>([^<>]+)</h2>', html).decode('utf-8')

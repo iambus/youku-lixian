@@ -182,6 +182,7 @@ def escape_file_path(path):
 	path = path.replace('/', '-')
 	path = path.replace('\\', '-')
 	path = path.replace('*', '-')
+	path = path.replace('?', '-')
 	return path
 
 def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
@@ -195,8 +196,8 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
 			import sys
 			traceback.print_exc(file=sys.stdout)
 			pass
-	title = escape_file_path(title)
 	title = to_native_string(title)
+	title = escape_file_path(title)
 	filename = '%s.%s' % (title, ext)
 	filepath = os.path.join(output_dir, filename)
 	if total_size:

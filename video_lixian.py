@@ -27,6 +27,7 @@ def url_to_module(url):
 	downloads = {
 			'youku':youku,
 			'bilibili':bilibili,
+			'kankanews':bilibili,
 			'acfun':acfun,
 			'iask':iask,
 			'sina':iask,
