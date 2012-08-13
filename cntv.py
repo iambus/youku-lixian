@@ -6,7 +6,7 @@ from common import *
 import json
 import re
 
-def cntv_download_by_id(id, title=None, output_dir='.', stream_type=None, merge=True):
+def cntv_download_by_id(id, title=None, output_dir='.', merge=True):
 	assert id
 	info = json.loads(get_html('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid='+id).decode('utf-8'))
 	title = title or info['title']

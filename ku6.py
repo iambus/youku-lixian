@@ -6,7 +6,7 @@ import json
 import re
 from common import *
 
-def ku6_download_by_id(id, title=None, output_dir='.', stream_type=None, merge=True):
+def ku6_download_by_id(id, title=None, output_dir='.', merge=True):
 	data = json.loads(get_html('http://v.ku6.com/fetchVideo4Player/%s...html'%id))['data']
 	t = data['t']
 	f = data['f']

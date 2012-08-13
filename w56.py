@@ -5,7 +5,7 @@ __all__ = ['w56_download', 'w56_download_by_id']
 from common import *
 import json
 
-def w56_download_by_id(id, title=None, output_dir='.', stream_type=None, merge=True):
+def w56_download_by_id(id, title=None, output_dir='.', merge=True):
 	info = json.loads(get_html('http://vxml.56.com/json/%s/?src=site'%id))['info']
 	title = title or info['Subject']
 	assert title
