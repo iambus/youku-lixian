@@ -40,14 +40,23 @@ def trim_title(title):
 def parse_video_title(url, page):
 	if re.search(r'v_playlist', url):
 		# if we are playing a viedo from play list, the meta title might be incorrect
-		title = r1_of([r'<div class="show_title" title="([^"]+)"', r'<title>([^<>]*)</title>'], page).decode('utf-8')
+		title = r1_of([r'<div class="show_title" title="([^"]+)">[^<]', r'<title>([^<>]*)</title>'], page).decode('utf-8')
 	else:
-		title = r1_of([r'<div class="show_title" title="([^"]+)"', r'<meta name="title" content="([^"]*)"'], page).decode('utf-8')
+		title = r1_of([r'<div class="show_title" title="([^"]+)">[^<]', r'<meta name="title" content="([^"]*)"'], page).decode('utf-8')
 	assert title
 	title = trim_title(title)
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
 		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
+	title = re.sub(ur'—专辑：.*', u'', title) # remove the special name from title for playlist video
 	title = unescape_html(title)
+
+	subtitle = re.search(r'<span class="subtitle" id="subtitle">([^<>]*)</span>', page)
+	if subtitle:
+		subtitle = subtitle.group(1).decode('utf-8').strip()
+	if subtitle == title:
+		subtitle = None
+	if subtitle:
+		title += '-' + subtitle
 	return title
 
 def parse_playlist_title(url, page):
@@ -58,7 +67,8 @@ def parse_playlist_title(url, page):
 		title = re.search(r'<meta name="title" content="([^"]*)"', page).group(1).decode('utf-8')
 	title = trim_title(title)
 	if re.search(r'v_playlist', url) and re.search(r'-.*\S+', title):
-		title = re.sub(r'^[^-]+-\s*', '', title) # remove the special name from title for playlist video
+		title = re.sub(ur'^[^-]+-\s*', u'', title)
+	title = re.sub(ur'^.*—专辑：《(.+)》', ur'\1', title)
 	title = unescape_html(title)
 	return title
 
@@ -67,12 +77,7 @@ def parse_page(url):
 	page = get_html(url)
 	id2 = re.search(r"var\s+videoId2\s*=\s*'(\S+)'", page).group(1)
 	title = parse_video_title(url, page)
-	subtitle = re.search(r'<span class="subtitle" id="subtitle">([^<>]*)</span>', page)
-	if subtitle:
-		subtitle = subtitle.group(1).decode('utf-8').strip()
-	if subtitle == title:
-		subtitle = None
-	return id2, title, subtitle
+	return id2, title
 
 def get_info(videoId2):
 	return json.loads(get_html('http://v.youku.com/player/getPlayList/VideoIDS/'+videoId2))
@@ -123,9 +128,7 @@ def youku_download_by_id(id2, title, output_dir='.', stream_type=None, merge=Tru
 	download_urls(urls, title, file_type_of_url(urls[0]), total_size, output_dir, merge=merge)
 
 def youku_download(url, output_dir='', stream_type=None, merge=True):
-	id2, title, subtitle = parse_page(url)
-	if subtitle:
-		title += '-' + subtitle
+	id2, title = parse_page(url)
 	if type(title) == unicode:
 		title = title.encode(default_encoding)
 		title = title.replace('?', '-')
