@@ -123,7 +123,7 @@ class SimpleProgressBar:
 		bar_size = 40
 		percent = self.received*100.0/self.total_size
 		if percent > 100:
-			percent = 100
+			percent = 100.0
 		bar_rate = 100.0 / bar_size
 		dots = percent / bar_rate
 		dots = int(dots)
@@ -135,7 +135,7 @@ class SimpleProgressBar:
 		else:
 			plus = ''
 		bar = '=' * dots + plus
-		bar = '{0:>3.2f}% [{1:<40}] {2}/{3}'.format(percent, bar, self.current_piece, self.total_pieces)
+		bar = '{0:>3.0f}% [{1:<40}] {2}/{3}'.format(percent, bar, self.current_piece, self.total_pieces)
 		sys.stdout.write('\r'+bar)
 		sys.stdout.flush()
 	def update_received(self, n):
