@@ -25,7 +25,7 @@ def yinyuetai_download_by_id(id, title=None, merge=True):
 	# TODO: run a fully parse instead of text search
 	#url = r1(r'(http://flv.yinyuetai.com/uploads/videos/common/\w+\.flv\?t=[a-f0-9]{16})', amf)
 	#url = r1(r'http://hc.yinyuetai.com/uploads/videos/common/[A-F0-9]{32}\.mp4\?v=\d{12}', amf)
-	url = r1(r'(http://\w+\.yinyuetai\.com/uploads/videos/common/\w+\.(?:flv|mp4)\?(?:t=[a-f0-9]{16}|v=\d{12}))', amf)
+	url = r1(r'(http://\w+\.yinyuetai\.com/uploads/videos/common/\w+\.(?:flv|mp4)\?(?:sc=[a-f0-9]{16}|v=\d{12}))', amf)
 	assert url
 	ext, size = url_info(url)
 	download_urls([url], title, ext, total_size=size, merge=merge)
