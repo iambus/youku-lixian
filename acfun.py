@@ -37,13 +37,14 @@ def acfun_download(url, merge=True):
 	assert re.match(r'http://www.acfun.tv/v/ac(\d+)', url)
 	html = get_html(url).decode('utf-8')
 
-	title = r1(r'<span id="title-article" class="title"[^<>]*>([^<>]+)</span>', html)
+	title = r1(r'<h1 id="title-article" class="title"[^<>]*>([^<>]+)<span', html)
 	assert title
 	title = unescape_html(title)
 	title = escape_file_path(title)
 	title = title.replace(' - AcFun.tv', '')
 
-	id = r1(r"flashvars = {'id':'(\d+)'", html)
+	id = r1(r"\[Video\](\d+)\[/Video\]", html)
+	assert id
 	acfun_download_by_id(id, title, merge=merge)
 
 
