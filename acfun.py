@@ -43,9 +43,13 @@ def acfun_download(url, merge=True):
 	title = escape_file_path(title)
 	title = title.replace(' - AcFun.tv', '')
 
-	id = r1(r"\[Video\](\d+)\[/Video\]", html)
+	id = r1(r"\[[Vv]ideo\](\d+)\[/[Vv]ideo\]", html)
+	if id:
+		return acfun_download_by_id(id, title, merge=merge)
+	id = r1(r'<embed [^<>]* src="[^"]+id=(\d+)[^"]+"', html)
 	assert id
-	acfun_download_by_id(id, title, merge=merge)
+	iask_download_by_id(id, title, merge=merge)
+
 
 
 download = acfun_download
