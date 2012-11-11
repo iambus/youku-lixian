@@ -29,6 +29,7 @@ def url_to_module(url):
 			'youku':youku,
 			'bilibili':bilibili,
 			'kankanews':bilibili,
+			'smgbb':bilibili,
 			'acfun':acfun,
 			'iask':iask,
 			'sina':iask,

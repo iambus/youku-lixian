@@ -54,11 +54,15 @@ def parse_cid_playurl(xml):
 def bilibili_download_by_cid(id, title, merge=True):
 	url = 'http://interface.bilibili.tv/playurl?cid=' + id
 	urls = parse_cid_playurl(get_html(url, 'utf-8'))
-	assert re.search(r'\.(flv|hlv)\b', urls[0]), urls[0]
-	download_urls(urls, title, 'flv', total_size=None, merge=merge)
+	if re.search(r'\.(flv|hlv)\b', urls[0]):
+		download_urls(urls, title, 'flv', total_size=None, merge=merge)
+	elif re.search(r'/mp4/', urls[0]):
+		download_urls(urls, title, 'mp4', total_size=None, merge=merge)
+	else:
+		raise NotImplementedError(urls[0])
 
 def bilibili_download(url, merge=True):
-	assert re.match(r'http://(www.bilibili.tv|bilibili.kankanews.com)/video/av(\d+)', url)
+	assert re.match(r'http://(www.bilibili.tv|bilibili.kankanews.com|bilibili.smgbb.cn)/video/av(\d+)', url)
 	html = get_html(url)
 
 	title = r1(r'<h2>([^<>]+)</h2>', html).decode('utf-8')
