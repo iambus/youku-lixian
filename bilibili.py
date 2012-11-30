@@ -72,6 +72,7 @@ def bilibili_download(url, merge=True):
 	flashvars = r1_of([r'flashvars="([^"]+)"', r'"https://secure.bilibili.tv/secure,(cid=\d+)"'], html)
 	assert flashvars
 	t, id = flashvars.split('=', 1)
+	id = id.split('&')[0]
 	if t == 'cid':
 		bilibili_download_by_cid(id, title, merge=merge)
 	elif t == 'vid':
