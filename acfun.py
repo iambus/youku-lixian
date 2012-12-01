@@ -4,7 +4,7 @@ __all__ = ['acfun_download']
 
 import re
 from common import *
-from iask import iask_download_by_id
+#from iask import iask_download_by_id
 from youku import youku_download_by_id
 from tudou import tudou_download_by_iid
 from qq import qq_download_by_id
@@ -46,9 +46,23 @@ def acfun_download(url, merge=True):
 	id = r1(r"\[[Vv]ideo\](\d+)\[/[Vv]ideo\]", html)
 	if id:
 		return acfun_download_by_id(id, title, merge=merge)
-	id = r1(r'<embed [^<>]* src="[^"]+id=(\d+)[^"]+"', html)
+	id = r1(r'<embed [^<>]* (?:src|flashvars)="[^"]+id=(\d+)[^"]+"', html)
 	assert id
 	iask_download_by_id(id, title, merge=merge)
+
+def video_info(id):
+	url = 'http://platform.sina.com.cn/playurl/t_play?app_key=1917945218&vid=%s' % id
+	xml = get_decoded_html(url)
+	urls = re.findall(r'<url>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</url>', xml)
+	name = r1(r'<vname>(?:<!\[CDATA\[)?(.+?)(?:\]\]>)?</vname>', xml)
+	vstr = r1(r'<vstr>(?:<!\[CDATA\[)?(.+?)(?:\]\]>)?</vstr>', xml)
+	return urls, name, vstr
+
+def iask_download_by_id(id, title=None, merge=True):
+	urls, name, vstr = video_info(id)
+	title = title or name
+	assert title
+	download_urls(urls, title, 'flv', total_size=None, merge=merge)
 
 
 
