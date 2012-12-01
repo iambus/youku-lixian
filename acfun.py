@@ -37,7 +37,7 @@ def acfun_download(url, merge=True):
 	assert re.match(r'http://www.acfun.tv/v/ac(\d+)', url)
 	html = get_html(url).decode('utf-8')
 
-	title = r1(r'<h1 id="title-article" class="title"[^<>]*>([^<>]+)<span', html)
+	title = r1(r'<h1 id="title-article" class="title"[^<>]*>([^<>]+)</h1>', html)
 	assert title
 	title = unescape_html(title)
 	title = escape_file_path(title)
